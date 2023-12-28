@@ -50,7 +50,15 @@ class View implements Renderable
 	 */
 	private string $cacheFilename;
 
-	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false)
+	/**
+	 * The file to render when the view file is not existing
+	 * Only render this file when the $throwNotFound is false
+	 *
+	 * @var string $notFoundView
+	 */
+	private string $notFoundView = './resources/errors/404';
+
+	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false, protected bool $throwNotFound = true)
 	{
 		$this->cacheDirectory = $cachePath . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
 	}
@@ -70,8 +78,17 @@ class View implements Renderable
 	 */
 	public function make(string $view, array $data = []): self
 	{
-		$this->createCacheFile($view);
-		$this->cachedContents = self::requireView($this->cacheFilename, $data);
+		try {
+			$this->createCacheFile($view);
+		} catch (ViewNotFoundException $exception) {
+			if ($this->throwNotFound) {
+				throw $exception;
+			}
+
+			$file = $this->notFoundView;
+		}
+
+		$this->cachedContents = self::requireView($file ?? $this->cacheFilename, $data);
 
 		return $this;
 	}
@@ -79,6 +96,24 @@ class View implements Renderable
 	public function render(): string
 	{
 		return (string) $this;
+	}
+
+	/**
+	 * @param string $view
+	 * @return $this
+	 * @throws
+	 */
+	public function setNotFoundView(string $view): static
+	{
+		$file = $this->viewsPath . DIRECTORY_SEPARATOR . $view;
+		$file = str_ends_with($file, '.php') ? $file : $file . '.php';
+		if (!file_exists($file)) {
+			throw new ViewNotFoundException("NotFoundView view `$view` is not found.");
+		}
+
+		$this->notFoundView = $view;
+
+		return $this;
 	}
 
 	public function clearCache(): bool

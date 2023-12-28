@@ -211,7 +211,7 @@ class View implements Renderable
 				throw new ViewNotFoundException("Extended view `$file` is not found");
 			}
 
-			return null;
+			return '';
 		}
 
 		$contents = file_get_contents($file);
@@ -224,7 +224,9 @@ class View implements Renderable
 		}
 
 		// Remove includes|extends directives then return the contents
-		return preg_replace('/\[#\s*(@extends|@includes) ?(.*?)\s*#]/i', '', $contents);
+		$contents = preg_replace('/\[#\s*(@extends|@includes) ?(.*?)\s*#]/i', '', $contents);
+
+		return empty($contents) ? '' : $contents;
 	}
 
 	/**

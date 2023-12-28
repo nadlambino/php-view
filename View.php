@@ -178,8 +178,7 @@ class View implements Renderable
 	 */
 	private function getViewFile(string $view): string
 	{
-		$file = str_contains($view, $this->viewsPath) || str_contains($view, __FRAMEWORK__) ? $view : $this->viewsPath . DIRECTORY_SEPARATOR . $view;
-		$file = str_replace(' ', '', $file);
+		$file = str_replace(' ', '', $this->viewsPath . DIRECTORY_SEPARATOR . $view);
 
 		return !str_contains($file, '.php') ? $file . '.php' : $file;
 	}

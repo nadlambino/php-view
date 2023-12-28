@@ -58,6 +58,14 @@ class View implements Renderable
 	 */
 	private string $notFoundView = 'resources/errors/404.php';
 
+	/**
+	 * Identifier whether to throw ViewNotFoundException when extended layout is not found
+	 * If false, it will just skip the extended layout
+	 *
+	 * @var bool $strictOnExtendedView
+	 */
+	private bool $strictOnExtendedView = false;
+
 	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false, protected bool $throwNotFound = true)
 	{
 		$this->cacheDirectory = $cachePath . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
@@ -114,6 +122,11 @@ class View implements Renderable
 		$this->notFoundView = $view;
 
 		return $this;
+	}
+
+	public function setStrictOnExtendedView(bool $strict)
+	{
+		$this->strictOnExtendedView = $strict;
 	}
 
 	public function clearCache(): bool
@@ -188,10 +201,19 @@ class View implements Renderable
 	 *
 	 * @param string $file
 	 * @return array|string|string[]|null
+	 * @throws
 	 */
 	private function includeFiles(string $file): array|string|null
 	{
 		$file = $this->getViewFile($file);
+		if (!file_exists($file)) {
+			if ($this->strictOnExtendedView) {
+				throw new ViewNotFoundException("Extended view `$file` is not found");
+			}
+
+			return null;
+		}
+
 		$contents = file_get_contents($file);
 
 		// Find and replace [# @extends #] and [# @includes #] directives

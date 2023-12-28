@@ -56,7 +56,7 @@ class View implements Renderable
 	 *
 	 * @var string $notFoundView
 	 */
-	private string $notFoundView = './resources/errors/404.php';
+	private string $notFoundView = 'resources/errors/404.php';
 
 	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false, protected bool $throwNotFound = true)
 	{

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Inspira\View;
 
 use Inspira\Contracts\Renderable;
+use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
 
 /**
@@ -208,7 +209,7 @@ class View implements Renderable
 		$file = $this->getViewFile($file);
 		if (!file_exists($file)) {
 			if ($this->strictOnExtendedView) {
-				throw new ViewNotFoundException("Extended view `$file` is not found");
+				throw new ExtendedViewLayoutNotFoundException("Extended view `$file` is not found");
 			}
 
 			return '';
@@ -220,7 +221,13 @@ class View implements Renderable
 		preg_match_all('/\[#\s*(@extends|@includes) ?(.*?)\s*#]/i', $contents, $matches, PREG_SET_ORDER);
 		foreach ($matches as $value) {
 			// Recursively include files
-			$contents = str_replace($value[0], $this->includeFiles($value[2]), $contents);
+			$includedFileContents = $this->includeFiles($value[2]);
+
+			if (empty($includedFileContents)) {
+				continue;
+			}
+
+			$contents = str_replace($value[0], $includedFileContents, $contents);
 		}
 
 		// Remove includes|extends directives then return the contents

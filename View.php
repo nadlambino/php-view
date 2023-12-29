@@ -168,7 +168,6 @@ class View implements Renderable
 			->compileYields()
 			->compileEscapedEchos()
 			->compileUnescapedEchos()
-			->compilePHPs()
 			->save();
 	}
 
@@ -200,7 +199,7 @@ class View implements Renderable
 	}
 
 	/**
-	 * Recursively compile all included/extended files
+	 * Recursively compile all include/extend files
 	 *
 	 * @param string $file
 	 * @return self
@@ -217,10 +216,10 @@ class View implements Renderable
 	 * Recursively resolve the included files and it's code blocks
 	 *
 	 * @param string $file
-	 * @return array|string|string[]|null
+	 * @return string
 	 * @throws
 	 */
-	private function includeFiles(string $file): array|string|null
+	private function includeFiles(string $file): string
 	{
 		$file = $this->getViewFile($file);
 		if (!file_exists($file)) {
@@ -229,11 +228,11 @@ class View implements Renderable
 
 		$contents = file_get_contents($file);
 
-		// Find and replace [# @extends #] and [# @includes #] directives
-		preg_match_all('/\[#\s*(@extends|@includes) ?(.*?)\s*#]/i', $contents, $matches, PREG_SET_ORDER);
+		// Find and replace <!-- include|extend -->
+		preg_match_all('/<!--\s*(extend|include)\s+([a-zA-Z\d_-]+)\s*-->/i', $contents, $matches, PREG_SET_ORDER);
 		foreach ($matches as $value) {
 			// Recursively include files
-			$includedFileContents = $this->includeFiles($value[2]);
+			$includedFileContents = $this->includeFiles(end($value));
 
 			if (empty($includedFileContents)) {
 				continue;
@@ -242,64 +241,57 @@ class View implements Renderable
 			$contents = str_replace($value[0], $includedFileContents, $contents);
 		}
 
-		// Remove includes|extends directives then return the contents
-		$contents = preg_replace('/\[#\s*(@extends|@includes) ?(.*?)\s*#]/i', '', $contents);
-
-		return empty($contents) ? '' : $contents;
+		return $contents ?: '';
 	}
 
 	/**
-	 * Process [# @block #] and [# @endblock #] directives
+	 * Process the content between the <!-- block --> and <!-- endblock --> markers
 	 *
 	 * @return $this
 	 */
 	private function compileBlocks(): self
 	{
-		preg_match_all('/\[#\s*@block ?(.*?) ?#](.*?)\[# ?@endblock\s*#]/is', $this->fileContents, $matches, PREG_SET_ORDER);
+		preg_match_all('/<!--\s*block\s*(.*?)\s*-->(.*?)<!--\s*endblock\s*-->/is', $this->fileContents, $matches, PREG_SET_ORDER);
 
 		foreach ($matches as $value) {
-			// Create or extend template codeBlocks
-			if (!array_key_exists($value[1], $this->codeBlocks)) $this->codeBlocks[$value[1]] = '';
+			$marker = $value[0] ?? '';
+			$blockName = $value[1] ?? '';
+			$content = $value[2] ?? '';
+			$this->codeBlocks[$blockName] = $content;
 
-			if (!str_contains($value[2], '@parent')) {
-				$this->codeBlocks[$value[1]] = $value[2];
-			} else {
-				$this->codeBlocks[$value[1]] = str_replace('@parent', $this->codeBlocks[$value[1]], $value[2]);
-			}
-
-			// Remove block directives
-			$this->fileContents = str_replace($value[0], '', $this->fileContents);
+			// Remove block marker
+			$this->fileContents = str_replace($marker, '', $this->fileContents);
 		}
 
 		return $this;
 	}
 
 	/**
-	 * Replace [# @yield #] directives with block content
+	 * Replace <!-- yield --> markers with block's contents
 	 *
 	 * @return $this
 	 */
 	private function compileYields(): self
 	{
 		foreach ($this->codeBlocks as $block => $value) {
-			$this->fileContents = preg_replace('/\[#\s*@yield ?' . $block . '\s*#]/i', $value, $this->fileContents);
+			$this->fileContents = preg_replace('/<!--\s*yield\s*' . $block . '\s*-->/i', $value, $this->fileContents);
 		}
 
-		// Remove unmatched yield directives
-		$this->fileContents = preg_replace('/\[#\s*@yield ?(.*?)\s*#]/i', '', $this->fileContents);
+		// Remove unmatched yield markers
+		$this->fileContents = preg_replace('/<!--\s*yield\s*(.*?)\s*-->/i', '', $this->fileContents);
 
 		return $this;
 	}
 
 	/**
-	 * Convert [!! ... !!] expressions into PHP echo statements
+	 * Convert {!! ... !!} expressions into PHP echo statements
 	 *
 	 * @return $this
 	 */
 	private function compileUnescapedEchos(): self
 	{
 		$this->fileContents = preg_replace(
-			'~\[!!\s*(.+?)\s*!!]~is',
+			'~\{!!\s*(.+?)\s*!!}~is',
 			'<?php echo $1 ?>',
 			$this->fileContents
 		);
@@ -308,38 +300,15 @@ class View implements Renderable
 	}
 
 	/**
-	 * Convert [[ ... ]] expressions into PHP echo htmlentities statements
+	 * Convert {{ ... }} expressions into PHP echo htmlentities statements
 	 *
 	 * @return $this
 	 */
 	private function compileEscapedEchos(): self
 	{
 		$this->fileContents = preg_replace(
-			'~\[\[\s*(.+?)\s*]]~is',
+			'~\{{\s*(.+?)\s*}}~is',
 			'<?php echo is_null($1) ? $1 : htmlentities($1, ENT_QUOTES, \'UTF-8\') ?>',
-			$this->fileContents
-		);
-
-		return $this;
-	}
-
-	/**
-	 * Convert [@php] ... [@endphp] codeBlocks into PHP code
-	 * Convert [...] codeBlocks into PHP code
-	 *
-	 * @return $this
-	 */
-	private function compilePHPs(): self
-	{
-		$this->fileContents = preg_replace(
-			'/\[\s*@php\s*](.*?)\[\s*@endphp\s*]/is',
-			'<?php $1 ?>',
-			$this->fileContents
-		);
-
-		$this->fileContents = preg_replace(
-			'/\[\s*@(.*?)\s*]/is',
-			'<?php $1 ?>',
 			$this->fileContents
 		);
 

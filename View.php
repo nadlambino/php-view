@@ -6,6 +6,7 @@ namespace Inspira\View;
 
 use Inspira\Contracts\Renderable;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
+use Inspira\View\Exceptions\RawViewPathNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
 
 /**
@@ -112,6 +113,27 @@ class View implements Renderable
 		return $this;
 	}
 
+	/**
+	 * @param string $path
+	 * @param array $data
+	 * @return $this
+	 * @throws
+	 */
+	public function raw(string $path, array $data = []): self
+	{
+		$path = $this->getViewFile($path, false);
+		if (!file_exists($path)) {
+			throw new RawViewPathNotFoundException("Raw view path `$path` is not found.");
+		}
+
+		$this->fileContents = self::requireView($path, $data);
+		$this->generateCacheFilename($path);
+		$this->save();
+		$this->cachedContents = $this->fileContents;
+
+		return $this;
+	}
+
 	public function render(): string
 	{
 		return (string) $this;
@@ -206,14 +228,19 @@ class View implements Renderable
 	 * Get the full path of given view file
 	 *
 	 * @param string $view
+	 * @param bool $fromViewsPath
 	 * @return string
 	 */
-	private function getViewFile(string $view): string
+	private function getViewFile(string $view, bool $fromViewsPath = true): string
 	{
-		$file = str_contains($view, $this->viewsPath) ? $view : $this->viewsPath . DIRECTORY_SEPARATOR . $view;
+		$file = match (true) {
+			$fromViewsPath === false              => $view,
+			str_contains($view, $this->viewsPath) => $view,
+			default                               => $this->viewsPath . DIRECTORY_SEPARATOR . $view
+		};
 		$file = str_replace(' ', '', $file);
 
-		return !str_contains($file, '.php') ? $file . '.php' : $file;
+		return !str_ends_with($file, '.php') ? $file . '.php' : $file;
 	}
 
 	/**

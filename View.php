@@ -14,6 +14,13 @@ use Inspira\View\Exceptions\ViewNotFoundException;
 class View implements Renderable
 {
 	/**
+	 * Current view instance
+	 *
+	 * @var View $instance
+	 */
+	private static View $instance;
+
+	/**
 	 * The parent directory where cached views are stored
 	 * The cached files will be stored under `/views`
 	 *
@@ -62,6 +69,17 @@ class View implements Renderable
 	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false, protected bool $throwNotFound = false)
 	{
 		$this->cacheDirectory = $cachePath . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
+		self::setInstance($this);
+	}
+
+	private static function setInstance(View $instance)
+	{
+		self::$instance = $instance;
+	}
+
+	public static function getInstance(): View
+	{
+		return self::$instance;
 	}
 
 	public function __toString(): string

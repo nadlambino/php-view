@@ -114,7 +114,7 @@ class View implements Renderable
 			throw new ViewNotFoundException("NotFoundView view `$view` is not found.");
 		}
 
-		$this->notFoundView = $view;
+		$this->notFoundView = $file;
 
 		return $this;
 	}

@@ -274,7 +274,7 @@ class View implements Renderable
 		$contents = file_get_contents($file);
 
 		// Find and replace <!-- include|extend -->
-		preg_match_all('/<!--\s*(extend|include)\s+([a-zA-Z\d_-]+)\s*-->/i', $contents, $matches, PREG_SET_ORDER);
+		preg_match_all('/<!--\s*(extend|include)\s+([a-zA-Z\d_/-]+)\s*-->/i', $contents, $matches, PREG_SET_ORDER);
 		foreach ($matches as $value) {
 			// Recursively include files
 			$includedFileContents = $this->includeFiles(end($value));

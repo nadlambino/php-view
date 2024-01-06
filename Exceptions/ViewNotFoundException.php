@@ -26,7 +26,7 @@ class ViewNotFoundException extends Exception implements ExceptionWithSuggestion
 
 	/**
 	 * @return string
-	 * @throws Exception
+	 * @throws RawViewPathNotFoundException
 	 */
 	public function render(): string
 	{

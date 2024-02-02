@@ -3,6 +3,7 @@
     "description": "PHP view component.",
     "type": "library",
     "require": {
+        "php": "8.3",
         "inspira/contracts": "dev-master"
     },
     "license": "MIT",

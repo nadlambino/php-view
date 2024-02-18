@@ -91,13 +91,23 @@ class View implements Renderable
 	/**
 	 * Create a cache file of the view file with extracted data as variables
 	 *
-	 * @param string $view
+	 * @param ComponentInterface|string $view
 	 * @param array $data
 	 * @return self
 	 * @throws ViewNotFoundException
 	 */
-	public function make(string $view, array $data = []): self
+	public function make(ComponentInterface|string $view, array $data = []): self
 	{
+		if (is_string($view) && class_exists($view)) {
+			$view = new $view();
+		}
+
+		if ($view instanceof ComponentInterface) {
+			$view->render($data);
+
+			return $this;
+		}
+
 		try {
 			$this->createCacheFile($view);
 		} catch (ViewNotFoundException $exception) {
@@ -109,6 +119,38 @@ class View implements Renderable
 		}
 
 		$this->cachedContents = self::requireView($file ?? $this->cacheFilename, $data);
+
+		return $this;
+	}
+
+	/**
+	 * Render a view from the given html.
+	 *
+	 * @param string $html
+	 * @return $this
+	 */
+	public function html(string $html): self
+	{
+		if (!isset($this->cacheFilename)) {
+			$this->generateCacheFilename((string)microtime());
+		}
+
+		$this->fileContents = $html;
+
+		$this->compileBlocks()
+			->compileYields()
+			->compileEscapedEchos()
+			->compileUnescapedEchos()
+			->save();
+
+		$this->cachedContents = self::requireView($this->cacheFilename);
+
+		return $this;
+	}
+
+	public function cacheFilename(string $filename): self
+	{
+		$this->generateCacheFilename($filename);
 
 		return $this;
 	}

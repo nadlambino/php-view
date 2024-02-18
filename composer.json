@@ -7,7 +7,8 @@
         "inspira/contracts": "dev-master"
     },
     "require-dev": {
-        "inspira/error-page": "dev-master"
+        "inspira/error-page": "dev-master",
+        "symfony/var-dumper": "7.1.x-dev"
     },
     "license": "MIT",
     "autoload": {
@@ -17,6 +18,11 @@
         "files": [
             "src/functions.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "app\\": "app"
+        }
     },
     "authors": [
         {

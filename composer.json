@@ -6,13 +6,16 @@
         "php": "^8.3",
         "inspira/contracts": "dev-master"
     },
+    "require-dev": {
+        "inspira/error-page": "dev-master"
+    },
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Inspira\\View\\": "."
+            "Inspira\\View\\": "src"
         },
         "files": [
-            "functions.php"
+            "src/functions.php"
         ]
     },
     "authors": [

@@ -1,0 +1,166 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "ec4181501c83196b8ff8022eb67ad5a8",
+    "packages": [
+        {
+            "name": "inspira/contracts",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nadlambino/php-contracts.git",
+                "reference": "f02c44fee1804c4a255cff56fb9eb4288bafa3d7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nadlambino/php-contracts/zipball/f02c44fee1804c4a255cff56fb9eb4288bafa3d7",
+                "reference": "f02c44fee1804c4a255cff56fb9eb4288bafa3d7",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Inspira\\Contracts\\": "."
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ronald Lambino",
+                    "email": "50892397+nadlambino@users.noreply.github.com"
+                }
+            ],
+            "description": "Collection of PHP interfaces.",
+            "support": {
+                "issues": "https://github.com/nadlambino/php-contracts/issues",
+                "source": "https://github.com/nadlambino/php-contracts/tree/master"
+            },
+            "time": "2024-02-02T10:50:34+00:00"
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "demyanovs/php-highlight",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/demyanovs/php-highlight.git",
+                "reference": "98b5f20acbbd5ff914d2c6ad833a339a7089ac1e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/demyanovs/php-highlight/zipball/98b5f20acbbd5ff914d2c6ad833a339a7089ac1e",
+                "reference": "98b5f20acbbd5ff914d2c6ad833a339a7089ac1e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "doctrine/coding-standard": "^12.0",
+                "phpunit/phpunit": "^10.2",
+                "squizlabs/php_codesniffer": "*"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Demyanovs\\PHPHighlight\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Demyanov Vyacheslav",
+                    "email": "demyanovs@gmail.com"
+                }
+            ],
+            "description": "A PHP library for highlighting code syntax.",
+            "keywords": [
+                "codehighlighter",
+                "codehighlighting",
+                "php-highlight",
+                "php_highlight",
+                "syntax-highlighting"
+            ],
+            "support": {
+                "issues": "https://github.com/demyanovs/php-highlight/issues",
+                "source": "https://github.com/demyanovs/php-highlight/tree/2.1.0"
+            },
+            "time": "2023-06-13T20:53:06+00:00"
+        },
+        {
+            "name": "inspira/error-page",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nadlambino/php-error-page.git",
+                "reference": "55df6079a7d119ee8ed29d3e896f8e178742124c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nadlambino/php-error-page/zipball/55df6079a7d119ee8ed29d3e896f8e178742124c",
+                "reference": "55df6079a7d119ee8ed29d3e896f8e178742124c",
+                "shasum": ""
+            },
+            "require": {
+                "demyanovs/php-highlight": "dev-master",
+                "inspira/contracts": "dev-master",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "inspira/utils": "dev-master",
+                "symfony/var-dumper": "7.1.x-dev"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Inspira\\ErrorPage\\": "./src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ronald Lambino",
+                    "email": "50892397+nadlambino@users.noreply.github.com"
+                }
+            ],
+            "description": "PHP error page component.",
+            "support": {
+                "issues": "https://github.com/nadlambino/php-error-page/issues",
+                "source": "https://github.com/nadlambino/php-error-page/tree/master"
+            },
+            "time": "2024-02-03T11:29:16+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "inspira/contracts": 20,
+        "inspira/error-page": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "^8.3"
+    },
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
+}

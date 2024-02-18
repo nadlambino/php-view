@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "php": "^8.3",
-        "inspira/contracts": "dev-master"
+        "inspira/contracts": "dev-master",
+        "inspira/container": "dev-master"
     },
     "require-dev": {
         "inspira/error-page": "dev-master",

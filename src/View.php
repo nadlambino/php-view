@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Inspira\View;
 
+use Inspira\Container\Container;
+use Inspira\Container\Exceptions\NonInstantiableBindingException;
+use Inspira\Container\Exceptions\UnresolvableBindingException;
+use Inspira\Container\Exceptions\UnresolvableBuiltInTypeException;
+use Inspira\Container\Exceptions\UnresolvableMissingTypeException;
 use Inspira\Contracts\Renderable;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\RawViewPathNotFoundException;
@@ -67,9 +72,10 @@ class View implements Renderable
 	 */
 	private string $notFoundView = 'resources/errors/404.php';
 
-	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false, protected bool $throwNotFound = true)
+	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false, protected bool $throwNotFound = true, protected ?Container $container = null)
 	{
 		$this->cacheDirectory = $cachePath . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
+		$this->container ??= Container::getInstance();
 		self::setInstance($this);
 	}
 
@@ -95,11 +101,15 @@ class View implements Renderable
 	 * @param array $data
 	 * @return self
 	 * @throws ViewNotFoundException
+	 * @throws NonInstantiableBindingException
+	 * @throws UnresolvableBindingException
+	 * @throws UnresolvableBuiltInTypeException
+	 * @throws UnresolvableMissingTypeException
 	 */
 	public function make(ComponentInterface|string $view, array $data = []): self
 	{
 		if (is_string($view) && class_exists($view)) {
-			$view = new $view();
+			$view = $this->container->make($view);
 		}
 
 		if ($view instanceof ComponentInterface) {

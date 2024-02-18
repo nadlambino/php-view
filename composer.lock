@@ -4,8 +4,50 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c91b00ef353537b193fae411d735acc2",
+    "content-hash": "9d25516e05bd376bd9ce38dbc4d5b709",
     "packages": [
+        {
+            "name": "inspira/container",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nadlambino/php-container.git",
+                "reference": "cb6014bde3a57413990bdcd48d52c75b30c6f2e7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nadlambino/php-container/zipball/cb6014bde3a57413990bdcd48d52c75b30c6f2e7",
+                "reference": "cb6014bde3a57413990bdcd48d52c75b30c6f2e7",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3",
+                "psr/container": "2.0.x-dev"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Inspira\\Container\\": "./src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ronald Lambino",
+                    "email": "50892397+nadlambino@users.noreply.github.com"
+                }
+            ],
+            "description": "PHP container component.",
+            "support": {
+                "issues": "https://github.com/nadlambino/php-container/issues",
+                "source": "https://github.com/nadlambino/php-container/tree/master"
+            },
+            "time": "2024-02-02T10:50:35+00:00"
+        },
         {
             "name": "inspira/contracts",
             "version": "dev-master",
@@ -46,6 +88,60 @@
                 "source": "https://github.com/nadlambino/php-contracts/tree/master"
             },
             "time": "2024-02-02T10:50:34+00:00"
+        },
+        {
+            "name": "psr/container",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/container.git",
+                "reference": "707984727bd5b2b670e59559d3ed2500240cf875"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/container/zipball/707984727bd5b2b670e59559d3ed2500240cf875",
+                "reference": "707984727bd5b2b670e59559d3ed2500240cf875",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Container\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common Container Interface (PHP FIG PSR-11)",
+            "homepage": "https://github.com/php-fig/container",
+            "keywords": [
+                "PSR-11",
+                "container",
+                "container-interface",
+                "container-interop",
+                "psr"
+            ],
+            "support": {
+                "issues": "https://github.com/php-fig/container/issues",
+                "source": "https://github.com/php-fig/container"
+            },
+            "time": "2023-09-22T11:11:30+00:00"
         }
     ],
     "packages-dev": [
@@ -318,6 +414,7 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "inspira/contracts": 20,
+        "inspira/container": 20,
         "inspira/error-page": 20,
         "symfony/var-dumper": 20
     },

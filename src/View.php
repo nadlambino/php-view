@@ -82,6 +82,13 @@ class View implements Renderable
 		self::setInstance($this);
 	}
 
+	public function setViewsPath(string $path): static
+	{
+		$this->viewsPath = trim($path, DIRECTORY_SEPARATOR);
+
+		return $this;
+	}
+
 	private static function setInstance(View $instance)
 	{
 		self::$instance = $instance;

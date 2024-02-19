@@ -437,6 +437,7 @@ class View implements Renderable
 		extract($data);
 		ob_start();
 		require $path;
+
 		return (string) ob_get_clean();
 	}
 }

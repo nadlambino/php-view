@@ -15,20 +15,21 @@ class ComponentParser implements ComponentParserInterface
 	protected DOMXPath $documentXPath;
 
 	public function __construct(
-		protected View $view,
-		protected string $html,
-		protected string $prefix = 'app',
+		protected View         $view,
+		protected string       $html,
+		protected string       $prefix = 'app',
 		protected ?DOMDocument $document = null
-	) {
+	)
+	{
 		$this->document ??= new DOMDocument();
-		$this->loadDocument();
+		$this->safeLoadDocument(fn() => $this->document->loadHTML($this->html));
 		$this->documentXPath = new DOMXPath($this->document);
 	}
 
-	protected function loadDocument(): void
+	protected function safeLoadDocument(\Closure $closure)
 	{
 		libxml_use_internal_errors(true);
-		$this->document->loadHTML($this->html);
+		$closure();
 		libxml_use_internal_errors(false);
 	}
 
@@ -75,13 +76,30 @@ class ComponentParser implements ComponentParserInterface
 		$componentClass = $this->view->getComponentClass($component);
 		$view = $this->view->make($componentClass, $attributes);
 
-		return $view->render();
+		return $this->setWrapperElementAttributes($view->render(), $attributes);
+	}
+
+	protected function setWrapperElementAttributes(string $html, array $attributes): string
+	{
+		$this->safeLoadDocument(fn() => $this->document->loadXML($html));
+
+		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
+
+		if ($wrapperElement instanceof DOMElement && !$wrapperElement->nextSibling && $wrapperElement->tagName !== 'html') {
+			foreach ($attributes as $key => $value) {
+				$wrapperElement->setAttribute($key, $value);
+			}
+
+			$html = $this->document->saveHTML();
+		}
+
+		return $html;
 	}
 
 	protected function replaceComponentTag(DOMElement $element, string $replacement, string $html): string
 	{
 		return preg_replace(
-			'/<'. $element->tagName .'(.*?)>(.*?)<\/'. $element->tagName .'>/s',
+			'/<' . $element->tagName . '(.*?)>(.*?)<\/' . $element->tagName . '>/s',
 			$replacement,
 			$html,
 			1

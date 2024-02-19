@@ -108,12 +108,13 @@ class View implements Renderable
 	 */
 	public function make(ComponentInterface|string $view, array $data = []): self
 	{
-		if (is_string($view) && class_exists($view)) {
-			$view = $this->container->make($view);
-		}
-
-		if ($view instanceof ComponentInterface) {
-			return $view->render($data);
+		if (
+			is_string($view)
+			&& class_exists($view)
+			&& ($component = $this->container->make($view))
+			&& $component instanceof ComponentInterface
+		) {
+			return $component->render($data);
 		}
 
 		try {
@@ -285,9 +286,9 @@ class View implements Renderable
 	private function getViewFile(string $view, bool $fromViewsPath = true): string
 	{
 		$file = match (true) {
-			$fromViewsPath === false              => $view,
+			$fromViewsPath === false => $view,
 			str_contains($view, $this->viewsPath) => $view,
-			default                               => $this->viewsPath . DIRECTORY_SEPARATOR . $view
+			default => $this->viewsPath . DIRECTORY_SEPARATOR . $view
 		};
 		$file = str_replace(' ', '', $file);
 
@@ -438,6 +439,6 @@ class View implements Renderable
 		ob_start();
 		require $path;
 
-		return (string) ob_get_clean();
+		return (string)ob_get_clean();
 	}
 }

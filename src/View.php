@@ -188,7 +188,18 @@ class View implements Renderable
 
 	public function render(): string
 	{
-		return $this->cachedContents;
+		$contents = $this->cachedContents;
+		$this->clean();
+
+		return $contents;
+	}
+
+	private function clean()
+	{
+		$this->cachedContents = '';
+		$this->fileContents = '';
+		$this->codeBlocks = [];
+		$this->cacheFilename = '';
 	}
 
 	/**

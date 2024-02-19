@@ -105,6 +105,7 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string
 	{
+		/** @var DOMDocument $document */
 		$document = new $this->document();
 		$this->safeLoadDocument(fn() => $document->loadXML($html));
 

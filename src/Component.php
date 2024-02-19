@@ -18,6 +18,20 @@ trait Component
 
 	protected ?string $namespace = null;
 
+	protected string $componentViewsDirectory = '';
+
+	public function setComponentViewsDirectory(string $directory): static
+	{
+		$this->componentViewsDirectory = $directory;
+
+		return $this;
+	}
+
+	public function getComponentViewsDirectory(): string
+	{
+		return $this->componentViewsDirectory;
+	}
+
 	public function setComponentPrefix(string $prefix): static
 	{
 		$this->prefix = $prefix;

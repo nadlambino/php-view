@@ -32,8 +32,9 @@ abstract class Component implements ComponentInterface
 		}
 
 		$this->view ??= camel_to_kebab(class_basename(static::class));
+		$view = View::getInstance()->getComponentViewsDirectory() . DIRECTORY_SEPARATOR . $this->view;
 
-		return View::getInstance()->make(trim($this->view, DIRECTORY_SEPARATOR), $data);
+		return View::getInstance()->make(trim($view, DIRECTORY_SEPARATOR), $data);
 	}
 
 	protected function getData(): array

@@ -91,7 +91,7 @@ class View implements Renderable
 
 	public function __toString(): string
 	{
-		return $this->cachedContents;
+		return $this->render();
 	}
 
 	/**
@@ -187,7 +187,7 @@ class View implements Renderable
 
 	public function render(): string
 	{
-		return (string) $this;
+		return $this->cachedContents;
 	}
 
 	/**

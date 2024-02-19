@@ -42,7 +42,8 @@ abstract class Component implements ComponentInterface
 		$properties = [];
 
 		foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-			$properties[$property->getName()] = $this->{$property->getName()};
+			$name = $property->getName();
+			$properties[$name] = $this->$name;
 		}
 
 		return $properties;

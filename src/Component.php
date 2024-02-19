@@ -16,9 +16,18 @@ trait Component
 
 	protected string $prefix = 'app';
 
+	protected ?string $namespace = null;
+
 	public function setComponentPrefix(string $prefix): static
 	{
 		$this->prefix = $prefix;
+
+		return $this;
+	}
+
+	public function autoloadComponentsFrom(string $namespace): self
+	{
+		$this->namespace = $namespace;
 
 		return $this;
 	}
@@ -32,11 +41,21 @@ trait Component
 
 	public function getComponentClass(string $key): string
 	{
-		if (!isset($this->components[$key])) {
-			throw new ComponentNotFoundException("Component `$key` is not found. Did you register this component?");
+		if (isset($this->components[$key])) {
+			return $this->components[$key];
 		}
 
-		return $this->components[$key];
+		if ($this->namespace) {
+			$class = kebab_to_camel($key);
+			$namespace = str_replace(['/', '.'], ["\\", ''], $this->namespace);
+			$component = $namespace . '\\' . $class;
+
+			if (class_exists($component)) {
+				return $component;
+			}
+		}
+
+		throw new ComponentNotFoundException("Component `$key` is not found. Did you register this component?");
 	}
 
 	protected function compileComponents(): self

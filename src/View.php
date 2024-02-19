@@ -10,6 +10,7 @@ use Inspira\Container\Exceptions\UnresolvableBindingException;
 use Inspira\Container\Exceptions\UnresolvableBuiltInTypeException;
 use Inspira\Container\Exceptions\UnresolvableMissingTypeException;
 use Inspira\Contracts\Renderable;
+use Inspira\View\Components\ComponentInterface;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\RawViewPathNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;

@@ -113,9 +113,7 @@ class View implements Renderable
 		}
 
 		if ($view instanceof ComponentInterface) {
-			$view->render($data);
-
-			return $this;
+			return $view->render($data);
 		}
 
 		try {
@@ -159,13 +157,6 @@ class View implements Renderable
 		return $this;
 	}
 
-	public function cacheFilename(string $filename): self
-	{
-		$this->generateCacheFilename($filename);
-
-		return $this;
-	}
-
 	/**
 	 * @param string $path
 	 * @param array $data
@@ -183,6 +174,13 @@ class View implements Renderable
 		$this->generateCacheFilename($path);
 		$this->save();
 		$this->cachedContents = $this->fileContents;
+
+		return $this;
+	}
+
+	public function cacheFilename(string $filename): self
+	{
+		$this->generateCacheFilename($filename);
 
 		return $this;
 	}

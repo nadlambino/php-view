@@ -20,6 +20,8 @@ use Inspira\View\Exceptions\ViewNotFoundException;
  */
 class View implements Renderable
 {
+	use Component;
+
 	/**
 	 * Current view instance
 	 *
@@ -148,7 +150,8 @@ class View implements Renderable
 
 		$this->fileContents = $html;
 
-		$this->compileBlocks()
+		$this->compileComponents()
+			->compileBlocks()
 			->compileYields()
 			->compileEscapedEchos()
 			->compileUnescapedEchos()
@@ -200,7 +203,6 @@ class View implements Renderable
 		$this->cachedContents = '';
 		$this->fileContents = '';
 		$this->codeBlocks = [];
-		$this->cacheFilename = '';
 	}
 
 	/**
@@ -268,6 +270,7 @@ class View implements Renderable
 		}
 
 		$this->compileIncludedFile($file)
+			->compileComponents()
 			->compileBlocks()
 			->compileYields()
 			->compileEscapedEchos()

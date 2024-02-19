@@ -15,25 +15,39 @@ abstract class Component implements ComponentInterface
 
 	protected ?string $cacheFilename;
 
+	private array $data = [];
+
 	public function html(): ?string
 	{
 		return null;
 	}
 
-	public function render(array $data = []): View
+	public function render(): View
 	{
-		$properties = $this->getProperties() + $data;
+		$data = [...$this->getProperties(), ...$this->getData()];
 
 		if ($html = $this->html()) {
 			return View::getInstance()
 				->cacheFilename($this->cacheFilename ?? static::class)
-				->html($html, $properties);
+				->html($html, $data);
 		}
 
 		$this->view ??= camel_to_kebab(class_basename(static::class));
 		$view = $this->directory . DIRECTORY_SEPARATOR . $this->view;
 
-		return View::getInstance()->make(trim($view, DIRECTORY_SEPARATOR), $properties);
+		return View::getInstance()->make(trim($view, DIRECTORY_SEPARATOR), $data);
+	}
+
+	protected function getData(): array
+	{
+		return $this->data;
+	}
+
+	public function setData(array $data): static
+	{
+		$this->data = $data;
+
+		return $this;
 	}
 
 	protected function getProperties() : array

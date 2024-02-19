@@ -6,5 +6,7 @@ namespace Inspira\View;
 
 interface ComponentInterface
 {
-	public function render(array $data = []): View;
+	public function render(): View;
+
+	public function setData(array $data): static;
 }

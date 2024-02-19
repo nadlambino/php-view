@@ -72,7 +72,7 @@ class View implements Renderable
 	 */
 	private string $notFoundView = 'resources/errors/404.php';
 
-	public function __construct(protected string $viewsPath, string $cachePath, protected bool $useCached = false, protected bool $throwNotFound = true, protected ?Container $container = null)
+	public function __construct(protected string $viewsPath = '', string $cachePath = 'cache', protected bool $useCached = false, protected bool $throwNotFound = true, protected ?Container $container = null)
 	{
 		$this->cacheDirectory = $cachePath . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
 		$this->container ??= Container::getInstance();
@@ -86,7 +86,7 @@ class View implements Renderable
 
 	public static function getInstance(): View
 	{
-		return self::$instance;
+		return self::$instance ?? new self();
 	}
 
 	public function __toString(): string

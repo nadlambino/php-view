@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9d25516e05bd376bd9ce38dbc4d5b709",
+    "content-hash": "2c4e42afa3de42cd2f786e20dad6a9fb",
     "packages": [
         {
             "name": "inspira/container",
@@ -88,6 +88,51 @@
                 "source": "https://github.com/nadlambino/php-contracts/tree/master"
             },
             "time": "2024-02-02T10:50:34+00:00"
+        },
+        {
+            "name": "inspira/utils",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nadlambino/php-utils.git",
+                "reference": "6f78d4f554bf61ddf54bd2613aa8997d55d15eb6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nadlambino/php-utils/zipball/6f78d4f554bf61ddf54bd2613aa8997d55d15eb6",
+                "reference": "6f78d4f554bf61ddf54bd2613aa8997d55d15eb6",
+                "shasum": ""
+            },
+            "require": {
+                "inspira/contracts": "dev-master",
+                "php": "^8.3"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "functions.php"
+                ],
+                "psr-4": {
+                    "Inspira\\Utils\\": "."
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ronald Lambino",
+                    "email": "50892397+nadlambino@users.noreply.github.com"
+                }
+            ],
+            "description": "Collection of PHP utility functions.",
+            "support": {
+                "issues": "https://github.com/nadlambino/php-utils/issues",
+                "source": "https://github.com/nadlambino/php-utils/tree/master"
+            },
+            "time": "2024-02-19T02:51:35+00:00"
         },
         {
             "name": "psr/container",
@@ -415,6 +460,7 @@
     "stability-flags": {
         "inspira/contracts": 20,
         "inspira/container": 20,
+        "inspira/utils": 20,
         "inspira/error-page": 20,
         "symfony/var-dumper": 20
     },

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Inspira\View;
 
-use Inspira\View\Exceptions\ViewComponentNotSet;
 use ReflectionClass;
 use ReflectionProperty;
 
 abstract class Component implements ComponentInterface
 {
-	protected ?string $view = null;
+	protected ?string $directory = 'components';
+
+	protected ?string $view;
 
 	protected ?string $cacheFilename;
 
@@ -29,11 +30,10 @@ abstract class Component implements ComponentInterface
 				->html($html, $properties);
 		}
 
-		if (! $this->view) {
-			throw new ViewComponentNotSet("View component " . static::class . " must have a view or html");
-		}
+		$this->view ??= camel_to_kebab(class_basename(static::class));
+		$view = $this->directory . DIRECTORY_SEPARATOR . $this->view;
 
-		return View::getInstance()->make($this->view, $properties);
+		return View::getInstance()->make(trim($view, DIRECTORY_SEPARATOR), $properties);
 	}
 
 	protected function getProperties() : array

@@ -40,9 +40,10 @@ class ComponentParser implements ComponentParserInterface
 		$componentTags = $this->getComponentTags();
 
 		foreach ($componentTags as $element) {
+			$children = $element->hasChildNodes() ? $element->childNodes : null;
 			$component = $this->extractComponentName($element);
 			$attributes = $this->extractAttributes($element);
-			$componentHtml = $this->renderComponent($component, $attributes);
+			$componentHtml = $this->renderComponent($component, $attributes, $children);
 			$parsedHtml = $this->replaceComponentTag($element, $componentHtml, $parsedHtml);
 		}
 
@@ -72,12 +73,17 @@ class ComponentParser implements ComponentParserInterface
 		return $attributes;
 	}
 
-	protected function renderComponent(string $component, array $attributes): string
+	protected function renderComponent(string $component, array $attributes, ?DOMNodeList $children): string
 	{
 		$componentClass = $this->view->getComponentClass($component);
 		$view = $this->view->make($componentClass, $attributes);
+		$html = $this->setWrapperElementAttributes($view->render(), $attributes);
 
-		return $this->setWrapperElementAttributes($view->render(), $attributes);
+		if ($children) {
+			return $this->appendComponentChildren($html, $children);
+		}
+
+		return $html;
 	}
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string
@@ -94,7 +100,25 @@ class ComponentParser implements ComponentParserInterface
 			$html = $this->document->saveHTML();
 		}
 
-		return $html;
+		return $html ?: '';
+	}
+
+	protected function appendComponentChildren(string $html, DOMNodeList $children): string
+	{
+		$document = new $this->document();
+		$this->safeLoadDocument(fn() => $document->loadXML($html));
+
+		$element = $document->getElementsByTagName('*')->item(0);
+
+		if (is_null($element)) {
+			return $html;
+		}
+
+		foreach ($children as $child) {
+			$element->appendChild($document->importNode($child, true));
+		}
+
+		return $document->saveHTML();
 	}
 
 	protected function replaceComponentTag(DOMElement $element, string $replacement, string $html): string

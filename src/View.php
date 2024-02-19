@@ -137,9 +137,10 @@ class View implements Renderable
 	 * Render a view from the given html.
 	 *
 	 * @param string $html
+	 * @param array $data
 	 * @return $this
 	 */
-	public function html(string $html): self
+	public function html(string $html, array $data = []): self
 	{
 		if (!isset($this->cacheFilename)) {
 			$this->generateCacheFilename((string)microtime());
@@ -153,7 +154,7 @@ class View implements Renderable
 			->compileUnescapedEchos()
 			->save();
 
-		$this->cachedContents = self::requireView($this->cacheFilename);
+		$this->cachedContents = self::requireView($this->cacheFilename, $data);
 
 		return $this;
 	}

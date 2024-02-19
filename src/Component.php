@@ -21,22 +21,22 @@ abstract class Component implements ComponentInterface
 
 	public function render(array $data = []): View
 	{
+		$properties = $this->getProperties() + $data;
+
 		if ($html = $this->html()) {
 			return View::getInstance()
 				->cacheFilename($this->cacheFilename ?? static::class)
-				->html($html);
+				->html($html, $properties);
 		}
 
 		if (! $this->view) {
 			throw new ViewComponentNotSet("View component " . static::class . " must have a view or html");
 		}
 
-		$properties = $this->getData();
-
-		return View::getInstance()->make($this->view, $properties + $data);
+		return View::getInstance()->make($this->view, $properties);
 	}
 
-	protected function getData() : array
+	protected function getProperties() : array
 	{
 		$class = new ReflectionClass($this);
 		$properties = [];

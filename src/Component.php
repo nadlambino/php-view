@@ -47,8 +47,7 @@ trait Component
 
 		if ($this->namespace) {
 			$class = kebab_to_camel($key);
-			$namespace = str_replace(['/', '.'], ["\\", ''], $this->namespace);
-			$component = $namespace . '\\' . $class;
+			$component = $this->namespace . '\\' . $class;
 
 			if (class_exists($component)) {
 				return $component;

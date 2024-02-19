@@ -10,7 +10,7 @@ use DOMNodeList;
 use DOMXPath;
 use Inspira\View\View;
 
-class ComponentParser
+class ComponentParser implements ComponentParserInterface
 {
 	protected DOMXPath $documentXPath;
 

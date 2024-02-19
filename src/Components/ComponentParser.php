@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Inspira\View\Components;
 
+use Closure;
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
@@ -26,7 +27,7 @@ class ComponentParser implements ComponentParserInterface
 		$this->documentXPath = new DOMXPath($this->document);
 	}
 
-	protected function safeLoadDocument(\Closure $closure)
+	protected function safeLoadDocument(Closure $closure)
 	{
 		libxml_use_internal_errors(true);
 		$closure();

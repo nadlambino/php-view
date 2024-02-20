@@ -13,8 +13,8 @@ if (!function_exists('view')) {
 }
 
 if (!function_exists('component')) {
-	function component(ComponentInterface|string $view, array $data = []): View
+	function component(ComponentInterface|string $component, array $data = []): View
 	{
-		return View::getInstance()?->component($view, $data);
+		return View::getInstance()?->component($component, $data);
 	}
 }

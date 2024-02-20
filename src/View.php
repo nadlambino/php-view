@@ -192,7 +192,11 @@ class View implements Renderable
 		$path = $this->getViewFile($path, false);
 
 		if (!file_exists($path)) {
-			throw new RawViewPathNotFoundException("Raw view path `$path` is not found.");
+			if ($this->throwNotFound) {
+				throw new RawViewPathNotFoundException("Raw view path `$path` is not found.");
+			}
+
+			return $this->make($this->notFoundView, $data);
 		}
 
 		$this->generateCacheFilename($path);

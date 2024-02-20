@@ -23,14 +23,15 @@ class ComponentParser implements ComponentParserInterface
 	)
 	{
 		$this->document ??= new DOMDocument();
-		$this->safeLoadDocument(fn() => $this->document->loadHTML($this->html));
+		$this->safeLoadDocument($this->html);
 		$this->documentXPath = new DOMXPath($this->document);
 	}
 
-	protected function safeLoadDocument(Closure $closure)
+	protected function safeLoadDocument(string $html, bool $preserveWhiteSpace = false, bool $asXml = false)
 	{
 		libxml_use_internal_errors(true);
-		$closure();
+		$this->document->preserveWhiteSpace = $preserveWhiteSpace;
+		$asXml ? $this->document->loadXML($html) : $this->document->loadHTML($html);
 		libxml_use_internal_errors(false);
 	}
 
@@ -79,16 +80,14 @@ class ComponentParser implements ComponentParserInterface
 		$view = $this->view->make($componentClass, $attributes);
 		$html = $this->setWrapperElementAttributes($view->render(), $attributes);
 
-		if ($children) {
-			return $this->appendComponentChildren($html, $children);
-		}
-
-		return $html;
+		return $children
+			? $this->appendComponentChildren($html, $children)
+			: $html;
 	}
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string
 	{
-		$this->safeLoadDocument(fn() => $this->document->loadXML($html));
+		$this->safeLoadDocument($html, asXml: true);
 
 		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
 
@@ -105,21 +104,19 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string
 	{
-		/** @var DOMDocument $document */
-		$document = new $this->document();
-		$this->safeLoadDocument(fn() => $document->loadXML($html));
+		$this->safeLoadDocument($html, asXml: true);
 
-		$element = $document->getElementsByTagName('*')->item(0);
+		$element = $this->document->getElementsByTagName('*')->item(0);
 
 		if (is_null($element)) {
 			return $html;
 		}
 
 		foreach ($children as $child) {
-			$element->appendChild($document->importNode($child, true));
+			$element->appendChild($this->document->importNode($child, true));
 		}
 
-		return $document->saveHTML();
+		return $this->document->saveHTML();
 	}
 
 	protected function replaceComponentTag(DOMElement $element, string $replacement, string $html): string

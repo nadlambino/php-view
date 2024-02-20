@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Inspira\View\Components;
 
-use Closure;
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use DOMNodeList;
+use DOMText;
 use DOMXPath;
 use Inspira\View\View;
 
@@ -95,11 +96,9 @@ class ComponentParser implements ComponentParserInterface
 			foreach ($attributes as $key => $value) {
 				$wrapperElement->setAttribute($key, $value);
 			}
-
-			$html = $this->document->saveHTML();
 		}
 
-		return $html ?: '';
+		return $this->document->saveHTML();
 	}
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string
@@ -112,11 +111,48 @@ class ComponentParser implements ComponentParserInterface
 			return $html;
 		}
 
+		/** @var DOMNodeList $slots */
+		$slots = $element->getElementsByTagName('slot');
+		$hasSlots = $slots->length > 0;
+
+		/** @var DOMNode|DOMElement|DOMText $element */
 		foreach ($children as $child) {
-			$element->appendChild($this->document->importNode($child, true));
+			if (trim($child->nodeValue) === '') {
+				continue;
+			}
+
+			if ($hasSlots === false) {
+				$element->appendChild($this->document->importNode($child, true));
+			} else {
+				$this->replaceSlotWithComponentChild($slots, $child);
+			}
 		}
 
+		$this->commentOutUnusedSlots($slots);
+
 		return $this->document->saveHTML();
+	}
+
+	protected function replaceSlotWithComponentChild(DOMNodeList $slots, DOMNode $child)
+	{
+		$childSlotName = $child->getAttribute('slot');
+
+		foreach ($slots as $slot) {
+			$slotName = $slot->getAttribute('name');
+			if ((empty($slotName) && empty($childSlotName)) || $slotName === $childSlotName) {
+				$slot->parentNode->replaceChild($this->document->importNode($child, true), $slot);
+
+				break;
+			}
+		}
+	}
+
+	protected function commentOutUnusedSlots(DOMNodeList $slots)
+	{
+		foreach ($slots as $slot) {
+			$comment = $this->document->createComment($this->document->saveHTML($slot));
+			$slot->parentNode->replaceChild($comment, $slot);
+		}
 	}
 
 	protected function replaceComponentTag(DOMElement $element, string $replacement, string $html): string

@@ -43,13 +43,18 @@ abstract class Component implements ComponentInterface
 		$classProps = $this->getClassProps();
 
 		if ($this->mergeProps) {
-			$data = array_merge($classProps, $componentProps);
-		} else {
-			$classProps['props'] = $componentProps;
-			$data = $classProps;
+			$props = [];
+
+			foreach ($componentProps as $name => $prop) {
+				$props[kebab_to_camel($name)] = $prop;
+			}
+
+			return array_merge($classProps, $props);
 		}
 
-		return $data;
+		$classProps['props'] = $componentProps;
+
+		return $classProps;
 	}
 
 	protected function getComponentProps(): array

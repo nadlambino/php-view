@@ -60,7 +60,7 @@ trait Component
 		}
 
 		if ($this->namespace) {
-			$class = kebab_to_camel($key);
+			$class = kebab_to_pascal($key);
 			$component = $this->namespace . '\\' . $class;
 
 			if (class_exists($component)) {

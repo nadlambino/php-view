@@ -171,7 +171,8 @@ class ComponentParser implements ComponentParserInterface
 
 			for ($childNodeIndex = 0; $childNodeIndex < $childNodesLength; $childNodeIndex++) {
 				$node = $childNodes->item($childNodeIndex);
-				if (is_null($node) || trim($node->nodeValue) === '') {
+
+				if (is_null($node) || (!($node instanceof DOMElement) && empty(trim($node->nodeValue)))) {
 					continue;
 				}
 

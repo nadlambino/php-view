@@ -10,5 +10,5 @@ interface ComponentInterface
 {
 	public function render(): View;
 
-	public function setData(array $data): static;
+	public function setComponentProps(array $props): static;
 }

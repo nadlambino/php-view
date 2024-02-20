@@ -124,7 +124,7 @@ class View implements Renderable
 			&& ($component = $this->container->make($view))
 			&& $component instanceof ComponentInterface
 		) {
-			return $component->setData($data)->render();
+			return $component->setComponentProps($data)->render();
 		}
 
 		try {

@@ -12,9 +12,9 @@ abstract class Component implements ComponentInterface
 {
 	protected ?string $view;
 
-	protected ?string $cacheFilename;
+	protected bool $mergeProps = false;
 
-	private array $data = [];
+	private array $componentProps = [];
 
 	public function html(): ?string
 	{
@@ -23,11 +23,11 @@ abstract class Component implements ComponentInterface
 
 	public function render(): View
 	{
-		$data = [...$this->getProperties(), ...$this->getData()];
+		$data = $this->getData();
 
 		if ($html = $this->html()) {
 			return View::getInstance()
-				->cacheFilename($this->cacheFilename ?? static::class)
+				->cacheFilename(static::class)
 				->html($html, $data);
 		}
 
@@ -37,19 +37,34 @@ abstract class Component implements ComponentInterface
 		return View::getInstance()->make(trim($view, DIRECTORY_SEPARATOR), $data);
 	}
 
-	protected function getData(): array
+	private function getData(): array
 	{
-		return $this->data;
+		$componentProps = $this->getComponentProps();
+		$classProps = $this->getClassProps();
+
+		if ($this->mergeProps) {
+			$data = array_merge($classProps, $componentProps);
+		} else {
+			$classProps['props'] = $componentProps;
+			$data = $classProps;
+		}
+
+		return $data;
 	}
 
-	public function setData(array $data): static
+	protected function getComponentProps(): array
 	{
-		$this->data = $data;
+		return $this->componentProps;
+	}
+
+	public function setComponentProps(array $props): static
+	{
+		$this->componentProps = $props;
 
 		return $this;
 	}
 
-	protected function getProperties() : array
+	protected function getClassProps() : array
 	{
 		$class = new ReflectionClass($this);
 		$properties = [];

@@ -107,26 +107,13 @@ class View implements Renderable
 	/**
 	 * Create a cache file of the view file with extracted data as variables
 	 *
-	 * @param ComponentInterface|string $view
+	 * @param string $view
 	 * @param array $data
 	 * @return self
 	 * @throws ViewNotFoundException
-	 * @throws NonInstantiableBindingException
-	 * @throws UnresolvableBindingException
-	 * @throws UnresolvableBuiltInTypeException
-	 * @throws UnresolvableMissingTypeException
 	 */
-	public function make(ComponentInterface|string $view, array $data = []): self
+	public function make(string $view, array $data = []): self
 	{
-		if (
-			is_string($view)
-			&& class_exists($view)
-			&& ($component = $this->container->make($view))
-			&& $component instanceof ComponentInterface
-		) {
-			return $component->setComponentProps($data)->render();
-		}
-
 		try {
 			$this->createCacheFile($view);
 		} catch (ViewNotFoundException $exception) {
@@ -140,6 +127,25 @@ class View implements Renderable
 		$this->cachedContents = self::requireView($file ?? $this->cacheFilename, $data);
 
 		return $this;
+	}
+
+	public function component(ComponentInterface|string $component, array $data = []): self
+	{
+		if ($component instanceof ComponentInterface) {
+			return $component->setComponentProps($data)->render();
+		}
+
+		if (
+			class_exists($component)
+			&& ($componentInstance = $this->container->make($component))
+			&& $componentInstance instanceof ComponentInterface
+		) {
+			return $componentInstance->setComponentProps($data)->render();
+		}
+
+		$view = trim($this->componentViewsPath . DIRECTORY_SEPARATOR . $component, DIRECTORY_SEPARATOR);
+
+		return $this->make($view, $data);
 	}
 
 	/**

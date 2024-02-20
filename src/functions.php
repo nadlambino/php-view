@@ -11,3 +11,10 @@ if (!function_exists('view')) {
 		return View::getInstance()?->make($view, $data);
 	}
 }
+
+if (!function_exists('component')) {
+	function component(ComponentInterface|string $view, array $data = []): View
+	{
+		return View::getInstance()?->component($view, $data);
+	}
+}

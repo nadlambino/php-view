@@ -181,6 +181,7 @@ class ComponentParser implements ComponentParserInterface
 			$slot = $slots->item($i);
 			$slotName = $slot->getAttribute('name');
 			if ((empty($slotName) && empty($childSlotName)) || $slotName === $childSlotName) {
+				$child->removeAttribute(self::SLOT_TAG);
 				$slot->parentNode->replaceChild($this->document->importNode($child, true), $slot);
 
 				break;

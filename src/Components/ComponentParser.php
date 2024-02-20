@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Inspira\View\Components;
 
 use DOMDocument;
-use DOMDocumentFragment;
 use DOMElement;
 use DOMNode;
 use DOMNodeList;
@@ -100,21 +99,21 @@ class ComponentParser implements ComponentParserInterface
 		$this->safeLoadDocument($html);
 
 		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
+		$wrapperElement = $this->createFragmentIfTemplated($wrapperElement);
 
-		if ($wrapperElement instanceof DOMElement && !$wrapperElement->nextSibling && $wrapperElement->tagName !== 'html') {
+		if ($wrapperElement instanceof DOMElement && !$wrapperElement->nextSibling && $wrapperElement->nodeName !== 'html') {
 			foreach ($attributes as $key => $value) {
 				$wrapperElement->setAttribute($key, $value);
 			}
 		}
 
-		return $this->document->saveHTML();
+		return $this->document->saveHTML($wrapperElement);
 	}
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string
 	{
 		$this->safeLoadDocument($html);
 
-		$childrenLength = $children->length;
 		$element = $this->document->getElementsByTagName('*')->item(0);
 
 		if (is_null($element)) {
@@ -124,44 +123,58 @@ class ComponentParser implements ComponentParserInterface
 		/** @var DOMNodeList $slots */
 		$slots = $element->getElementsByTagName(self::SLOT_TAG);
 		$hasSlots = $slots->length > 0;
+		$childrenLength = $children->length;
 
 		/** @var DOMNode|DOMElement|DOMText $element */
-		for($childIndex = 0; $childIndex < $childrenLength; $childIndex++) {
+		for ($childIndex = 0; $childIndex < $childrenLength; $childIndex++) {
 			$child = $children->item($childIndex);
 			if (trim($child->nodeValue) === '') {
 				continue;
 			}
 
-			if ($child->nodeName === self::TEMPLATE_TAG) {
+			if ($hasSlots === true) {
 				$templateSlotName = $child->hasAttributes() ? $child->getAttribute(self::SLOT_TAG) : null;
-				$fragment = $this->document->createDocumentFragment();
-				$childNodes = $child->childNodes;
-				$childNodesLength = $childNodes->length;
-
-				for ($childNodeIndex = 0; $childNodeIndex < $childNodesLength; $childNodeIndex++) {
-					$node = $childNodes->item($childNodeIndex);
-					$importedParagraph = $this->document->importNode($node, true);
-					$fragment->appendChild($importedParagraph);
-				}
-
-				$child = $fragment;
-			}
-
-			if ($hasSlots === false) {
-				$element->appendChild($this->document->importNode($child, true));
+				$child = $this->createFragmentIfTemplated($child);
+				$this->replaceSlotWithComponentContents($slots, $child, $templateSlotName);
 			} else {
-				$this->replaceSlotWithComponentChild($slots, $child, $templateSlotName ?? null);
+				$element->appendChild($this->document->importNode($child, true));
 			}
 		}
 
-		$this->commentOutUnusedSlots($slots);
+		$this->commentUnusedSlots($slots);
 
-		return $this->document->saveHTML();
+		return $this->document->saveHTML($element);
 	}
 
-	protected function replaceSlotWithComponentChild(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName): void
+	protected function createFragmentIfTemplated(DOMNode $template): DOMNode
 	{
-		$childSlotName = $child instanceof DOMDocumentFragment ? $templateSlotName  : $child->getAttribute(self::SLOT_TAG);
+		if ($template->nodeName === self::TEMPLATE_TAG) {
+			$fragment = $this->document->createDocumentFragment();
+			$childNodes = $template->childNodes;
+			$childNodesLength = $childNodes->length;
+
+			for ($childNodeIndex = 0; $childNodeIndex < $childNodesLength; $childNodeIndex++) {
+				$node = $childNodes->item($childNodeIndex);
+				if (is_null($node) || trim($node->nodeValue) === '') {
+					continue;
+				}
+
+				$imported = $this->document->importNode($node, true);
+				$fragment->appendChild($imported);
+			}
+
+			return $fragment;
+		}
+
+		return $template;
+	}
+
+	protected function replaceSlotWithComponentContents(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName): void
+	{
+		$childSlotName = $child->hasAttributes()
+			? $child->getAttribute(self::SLOT_TAG)
+			: $templateSlotName;
+
 		$length = $slots->length;
 
 		for ($i = 0; $i < $length; $i++) {
@@ -181,9 +194,9 @@ class ComponentParser implements ComponentParserInterface
 	 * @param DOMNodeList $slots
 	 * @return void
 	 */
-	protected function commentOutUnusedSlots(DOMNodeList $slots): void
+	protected function commentUnusedSlots(DOMNodeList $slots): void
 	{
-		for ($i = $slots->length - 1; $i >= 0; $i--) {
+		for ($i = 0; $i < $slots->length; $i++) {
 			$slot = $slots->item($i);
 			$comment = $this->document->createComment($this->document->saveHTML($slot));
 			$slot->parentNode->replaceChild($comment, $slot);

@@ -127,12 +127,10 @@ class ComponentParser implements ComponentParserInterface
 		$element = match (true) {
 			$wrapperElement instanceof DOMDocumentFragment
 			&& !$wrapperElement->nextSibling
-			&& !$wrapperElement?->firstChild?->nextSibling
-			&& $wrapperElement->nodeName !== 'html' => $wrapperElement->firstChild,
+			&& !$wrapperElement?->firstChild?->nextSibling => $wrapperElement->firstChild,
 
 			$wrapperElement instanceof DOMElement
-			&& !$wrapperElement->nextSibling
-			&& $wrapperElement->nodeName !== 'html' => $wrapperElement,
+			&& !$wrapperElement->nextSibling => $wrapperElement,
 
 			default => null
 		};

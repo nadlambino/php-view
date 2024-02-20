@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Inspira\View\Components;
 
 use DOMDocument;
+use DOMDocumentFragment;
 use DOMElement;
 use DOMNode;
 use DOMNodeList;
@@ -121,10 +122,23 @@ class ComponentParser implements ComponentParserInterface
 				continue;
 			}
 
+			if ($child->nodeName === 'template') {
+				$templateSlotName = $child->hasAttributes() ? $child->getAttribute('slot') : null;
+				$fragment = $this->document->createDocumentFragment();
+
+				foreach ($child->childNodes as $node) {
+					// Import the node to the new document, to prevent "wrong document" errors
+					$importedParagraph = $this->document->importNode($node, true);
+					$fragment->appendChild($importedParagraph);
+				}
+
+				$child = $fragment;
+			}
+
 			if ($hasSlots === false) {
 				$element->appendChild($this->document->importNode($child, true));
 			} else {
-				$this->replaceSlotWithComponentChild($slots, $child);
+				$this->replaceSlotWithComponentChild($slots, $child, $templateSlotName ?? null);
 			}
 		}
 
@@ -133,9 +147,9 @@ class ComponentParser implements ComponentParserInterface
 		return $this->document->saveHTML();
 	}
 
-	protected function replaceSlotWithComponentChild(DOMNodeList $slots, DOMNode $child)
+	protected function replaceSlotWithComponentChild(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName): void
 	{
-		$childSlotName = $child->getAttribute('slot');
+		$childSlotName = $child instanceof DOMDocumentFragment ? $templateSlotName  : $child->getAttribute('slot');
 
 		foreach ($slots as $slot) {
 			$slotName = $slot->getAttribute('name');

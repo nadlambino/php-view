@@ -245,8 +245,8 @@ class View implements Renderable
 	 */
 	public function setNotFoundView(string $view): static
 	{
-		$file = $this->viewsPath . DIRECTORY_SEPARATOR . $view;
-		$file = str_ends_with($file, '.php') ? $file : $file . '.php';
+		$file = str_ends_with($view, '.php') ? $view : $view . '.php';
+
 		if (!file_exists($file)) {
 			throw new ViewNotFoundException("NotFoundView view `$view` is not found.");
 		}

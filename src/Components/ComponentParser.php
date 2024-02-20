@@ -223,8 +223,23 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function replaceComponentTag(DOMNode $element, string $replacement, string $html): string
 	{
+		$name = $element->nodeName;
+		$selfClosingPattern = '/<' . $name . '(.*?)\/>/';
+		$fullClosingPattern = '/<' . $name . '(.*?)>(.*?)<\/' . $name . '>/s';
+
+		$newHtml = preg_replace(
+			$selfClosingPattern,
+			$replacement,
+			$html,
+			1
+		);
+
+		if ($newHtml !== null && $newHtml !== $html) {
+			return $newHtml;
+		}
+
 		return preg_replace(
-			'/<' . $element->tagName . '(.*?)\/>|<' . $element->tagName . '(.*?)>(.*?)<\/' . $element->tagName . '>/s',
+			$fullClosingPattern,
 			$replacement,
 			$html,
 			1

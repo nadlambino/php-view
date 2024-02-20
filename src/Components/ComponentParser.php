@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Inspira\View\Components;
 
 use DOMDocument;
+use DOMDocumentFragment;
 use DOMElement;
 use DOMNode;
 use DOMNodeList;
@@ -101,13 +102,28 @@ class ComponentParser implements ComponentParserInterface
 		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
 		$wrapperElement = $this->createFragmentIfTemplated($wrapperElement);
 
-		if ($wrapperElement instanceof DOMElement && !$wrapperElement->nextSibling && $wrapperElement->nodeName !== 'html') {
-			foreach ($attributes as $key => $value) {
-				$wrapperElement->setAttribute($key, $value);
-			}
+		$element = match (true) {
+			$wrapperElement instanceof DOMDocumentFragment
+			&& !$wrapperElement->nextSibling
+			&& $wrapperElement->nodeName !== 'html'
+			&& $wrapperElement?->firstChild?->nextSibling => $wrapperElement->firstChild,
+
+			$wrapperElement instanceof DOMElement
+			&& !$wrapperElement->nextSibling
+			&& $wrapperElement->nodeName !== 'html' => $wrapperElement,
+
+			default => null
+		};
+
+		if ($element === null) {
+			return $this->document->saveHTML($wrapperElement);
 		}
 
-		return $this->document->saveHTML($wrapperElement);
+		foreach ($attributes as $key => $value) {
+			$element->setAttribute($key, $value);
+		}
+
+		return $this->document->saveHTML($element);
 	}
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string

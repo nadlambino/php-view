@@ -183,7 +183,7 @@ class ComponentParser implements ComponentParserInterface
 	protected function replaceComponentTag(DOMElement $element, string $replacement, string $html): string
 	{
 		return preg_replace(
-			'/<' . $element->tagName . '(.*?)>(.*?)<\/' . $element->tagName . '>/s',
+			'/<' . $element->tagName . '(.*?)>(.*?)<\/' . $element->tagName . '>|<' . $element->tagName . '(.*?)\/>/s',
 			$replacement,
 			$html,
 			1

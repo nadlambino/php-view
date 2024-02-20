@@ -93,7 +93,7 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string
 	{
-		$this->safeLoadDocument($html);
+		$this->safeLoadDocument($html, asXml: true);
 
 		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
 

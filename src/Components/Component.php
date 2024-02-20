@@ -29,7 +29,7 @@ abstract class Component implements ComponentInterface
 
 		if ($html = $this->html()) {
 			return View::getInstance()
-				->cacheFilename(static::class)
+				->generateCacheFilename(static::class)
 				->html($html, $data);
 		}
 

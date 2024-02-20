@@ -161,6 +161,12 @@ class View implements Renderable
 			$this->generateCacheFilename((string)microtime());
 		}
 
+		if ($this->useCached && file_exists($this->cacheFilename)) {
+			$this->cachedContents = self::requireView($this->cacheFilename, $data);
+
+			return $this;
+		}
+
 		$this->fileContents = $html;
 
 		$this->compileComponents()
@@ -184,21 +190,28 @@ class View implements Renderable
 	public function raw(string $path, array $data = []): self
 	{
 		$path = $this->getViewFile($path, false);
+
 		if (!file_exists($path)) {
 			throw new RawViewPathNotFoundException("Raw view path `$path` is not found.");
 		}
 
-		$this->fileContents = self::requireView($path, $data);
 		$this->generateCacheFilename($path);
-		$this->save();
-		$this->cachedContents = $this->fileContents;
 
-		return $this;
-	}
+		if ($this->useCached && file_exists($this->cacheFilename)) {
+			$this->cachedContents = self::requireView($this->cacheFilename, $data);
 
-	public function cacheFilename(string $filename): self
-	{
-		$this->generateCacheFilename($filename);
+			return $this;
+		}
+
+		$this->compileIncludedFile($path)
+			->compileComponents()
+			->compileBlocks()
+			->compileYields()
+			->compileEscapedEchos()
+			->compileUnescapedEchos()
+			->save();
+
+		$this->cachedContents = self::requireView($this->cacheFilename, $data);
 
 		return $this;
 	}
@@ -278,6 +291,7 @@ class View implements Renderable
 		}
 
 		$this->generateCacheFilename($file);
+
 		if ($this->useCached && file_exists($this->cacheFilename)) {
 			return;
 		}
@@ -295,13 +309,15 @@ class View implements Renderable
 	 * Generate a base64 encoded filename and get only the last 100 characters
 	 *
 	 * @param string $file
-	 * @return void
+	 * @return View
 	 */
-	private function generateCacheFilename(string $file): void
+	public function generateCacheFilename(string $file): self
 	{
 		$filename = str_replace([DIRECTORY_SEPARATOR, '\\', '/', '..'], ['_'], $file);
 		$encoded = base64_encode($filename);
 		$this->cacheFilename = $this->cacheDirectory . substr($encoded, -100);
+
+		return $this;
 	}
 
 	/**

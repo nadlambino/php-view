@@ -105,8 +105,8 @@ class ComponentParser implements ComponentParserInterface
 		$element = match (true) {
 			$wrapperElement instanceof DOMDocumentFragment
 			&& !$wrapperElement->nextSibling
-			&& $wrapperElement->nodeName !== 'html'
-			&& $wrapperElement?->firstChild?->nextSibling => $wrapperElement->firstChild,
+			&& !$wrapperElement?->firstChild?->nextSibling
+			&& $wrapperElement->nodeName !== 'html' => $wrapperElement->firstChild,
 
 			$wrapperElement instanceof DOMElement
 			&& !$wrapperElement->nextSibling

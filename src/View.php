@@ -209,7 +209,8 @@ class View implements Renderable
 
 		$this->fileContents = file_get_contents($path);
 
-		$this->compileComponents()
+		$this->compileIncludedFile($path)
+			->compileComponents()
 			->compileBlocks()
 			->compileYields()
 			->compileEscapedEchos()

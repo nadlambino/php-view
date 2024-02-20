@@ -17,6 +17,10 @@ class ComponentParser implements ComponentParserInterface
 {
 	protected DOMXPath $documentXPath;
 
+	protected const SLOT_TAG = 'slot';
+
+	protected const TEMPLATE_TAG = 'template';
+
 	public function __construct(
 		protected View         $view,
 		protected string       $html,
@@ -113,7 +117,7 @@ class ComponentParser implements ComponentParserInterface
 		}
 
 		/** @var DOMNodeList $slots */
-		$slots = $element->getElementsByTagName('slot');
+		$slots = $element->getElementsByTagName(self::SLOT_TAG);
 		$hasSlots = $slots->length > 0;
 
 		/** @var DOMNode|DOMElement|DOMText $element */
@@ -122,8 +126,8 @@ class ComponentParser implements ComponentParserInterface
 				continue;
 			}
 
-			if ($child->nodeName === 'template') {
-				$templateSlotName = $child->hasAttributes() ? $child->getAttribute('slot') : null;
+			if ($child->nodeName === self::TEMPLATE_TAG) {
+				$templateSlotName = $child->hasAttributes() ? $child->getAttribute(self::SLOT_TAG) : null;
 				$fragment = $this->document->createDocumentFragment();
 
 				foreach ($child->childNodes as $node) {
@@ -149,7 +153,7 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function replaceSlotWithComponentChild(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName): void
 	{
-		$childSlotName = $child instanceof DOMDocumentFragment ? $templateSlotName  : $child->getAttribute('slot');
+		$childSlotName = $child instanceof DOMDocumentFragment ? $templateSlotName  : $child->getAttribute(self::SLOT_TAG);
 
 		foreach ($slots as $slot) {
 			$slotName = $slot->getAttribute('name');
@@ -161,9 +165,16 @@ class ComponentParser implements ComponentParserInterface
 		}
 	}
 
-	protected function commentOutUnusedSlots(DOMNodeList $slots)
+	/**
+	 * Comment out unused slots. Use for loop instead of foreach to avoid modifying the DOMNodeList object while on the loop.
+	 *
+	 * @param DOMNodeList $slots
+	 * @return void
+	 */
+	protected function commentOutUnusedSlots(DOMNodeList $slots): void
 	{
-		foreach ($slots as $slot) {
+		for ($i = $slots->length - 1; $i >= 0; $i--) {
+			$slot = $slots->item($i);
 			$comment = $this->document->createComment($this->document->saveHTML($slot));
 			$slot->parentNode->replaceChild($comment, $slot);
 		}

@@ -93,7 +93,7 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string
 	{
-		$this->safeLoadDocument($html, asXml: true);
+		$this->safeLoadDocument($html);
 
 		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
 
@@ -108,7 +108,7 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string
 	{
-		$this->safeLoadDocument($html, asXml: true);
+		$this->safeLoadDocument($html);
 
 		$element = $this->document->getElementsByTagName('*')->item(0);
 

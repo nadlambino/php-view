@@ -11,6 +11,7 @@ use DOMNode;
 use DOMNodeList;
 use DOMText;
 use DOMXPath;
+use Inspira\Container\Container;
 use Inspira\View\View;
 
 class ComponentParser implements ComponentParserInterface
@@ -22,6 +23,7 @@ class ComponentParser implements ComponentParserInterface
 	protected const TEMPLATE_TAG = 'template';
 
 	public function __construct(
+		protected Container    $container,
 		protected View         $view,
 		protected string       $html,
 		protected string       $prefix = 'app',
@@ -86,13 +88,31 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function renderComponent(string $component, array $attributes, ?DOMNodeList $children): string
 	{
-		$componentClass = $this->view->getComponentClass($component);
-		$view = $this->view->make($componentClass, $attributes);
-		$html = $this->setWrapperElementAttributes($view->render(), $attributes);
+		$class = $this->view->getComponentClass($component);
+
+		/** @var ComponentInterface $component */
+		$component = $this->container->make($class);
+
+		$view = $component->setComponentProps($attributes)->render();
+		$visibleAttributes = $this->getComponentVisibleAttributes($component, $attributes);
+		$html = $this->setWrapperElementAttributes($view->render(), $visibleAttributes);
 
 		return $children
 			? $this->appendComponentChildren($html, $children)
 			: $html;
+	}
+
+	protected function getComponentVisibleAttributes(ComponentInterface $component, array $attributes): array
+	{
+		$visibleAttributes = [];
+
+		foreach ($attributes as $name => $value) {
+			if ($component->isHiddenProp($name) === false) {
+				$visibleAttributes[$name] = $value;
+			}
+		}
+
+		return $visibleAttributes;
 	}
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string

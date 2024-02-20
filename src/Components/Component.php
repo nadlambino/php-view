@@ -16,6 +16,8 @@ abstract class Component implements ComponentInterface
 
 	private array $componentProps = [];
 
+	protected array $hiddenProps = [];
+
 	public function html(): ?string
 	{
 		return null;
@@ -80,5 +82,15 @@ abstract class Component implements ComponentInterface
 		}
 
 		return $properties;
+	}
+
+	public function getHiddenProps(): array
+	{
+		return $this->hiddenProps;
+	}
+
+	public function isHiddenProp(string $name): bool
+	{
+		return in_array($name, $this->hiddenProps);
 	}
 }

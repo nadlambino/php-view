@@ -11,4 +11,8 @@ interface ComponentInterface
 	public function render(): View;
 
 	public function setComponentProps(array $props): static;
+
+	public function getHiddenProps(): array;
+
+	public function isHiddenProp(string $name): bool;
 }

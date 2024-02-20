@@ -73,7 +73,7 @@ trait Component
 
 	protected function compileComponents(): self
 	{
-		$this->fileContents = (new ComponentParser($this, $this->fileContents, $this->prefix))->parse();
+		$this->fileContents = (new ComponentParser($this->container, $this, $this->fileContents, $this->prefix))->parse();
 
 		return $this;
 	}

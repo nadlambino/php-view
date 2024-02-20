@@ -33,11 +33,11 @@ class ComponentParser implements ComponentParserInterface
 		$this->documentXPath = new DOMXPath($this->document);
 	}
 
-	protected function safeLoadDocument(string $html, bool $preserveWhiteSpace = false, bool $asXml = false)
+	protected function safeLoadDocument(string $html, bool $preserveWhiteSpace = false, bool $noDoctype = true)
 	{
 		libxml_use_internal_errors(true);
 		$this->document->preserveWhiteSpace = $preserveWhiteSpace;
-		$asXml ? $this->document->loadXML($html) : $this->document->loadHTML($html);
+		$noDoctype ? $this->document->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD) : $this->document->loadHTML($html);
 		libxml_use_internal_errors(false);
 	}
 
@@ -45,8 +45,10 @@ class ComponentParser implements ComponentParserInterface
 	{
 		$parsedHtml = $this->html;
 		$componentTags = $this->getComponentTags();
+		$length = $componentTags->length;
 
-		foreach ($componentTags as $element) {
+		for ($i = 0; $i < $length; $i++) {
+			$element = $componentTags->item($i);
 			$children = $element->hasChildNodes() ? $element->childNodes : null;
 			$component = $this->extractComponentName($element);
 			$attributes = $this->extractAttributes($element);
@@ -62,19 +64,21 @@ class ComponentParser implements ComponentParserInterface
 		return $this->documentXPath->query("//*[starts-with(name(), '$this->prefix-')]");
 	}
 
-	protected function extractComponentName(DOMElement $element): string
+	protected function extractComponentName(DOMNode $element): string
 	{
 		return str_replace("$this->prefix-", '', $element->tagName);
 	}
 
-	protected function extractAttributes(DOMElement $element): array
+	protected function extractAttributes(DOMNode $element): array
 	{
+		if (!$element->hasAttributes()) {
+			return [];
+		}
+
 		$attributes = [];
 
-		if ($element->hasAttributes()) {
-			foreach ($element->attributes as $attribute) {
-				$attributes[$attribute->name] = $attribute->value;
-			}
+		foreach ($element->attributes as $attribute) {
+			$attributes[$attribute->name] = $attribute->value;
 		}
 
 		return $attributes;
@@ -93,7 +97,7 @@ class ComponentParser implements ComponentParserInterface
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string
 	{
-		$this->safeLoadDocument($html, asXml: true);
+		$this->safeLoadDocument($html);
 
 		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
 
@@ -110,6 +114,7 @@ class ComponentParser implements ComponentParserInterface
 	{
 		$this->safeLoadDocument($html);
 
+		$childrenLength = $children->length;
 		$element = $this->document->getElementsByTagName('*')->item(0);
 
 		if (is_null($element)) {
@@ -121,7 +126,8 @@ class ComponentParser implements ComponentParserInterface
 		$hasSlots = $slots->length > 0;
 
 		/** @var DOMNode|DOMElement|DOMText $element */
-		foreach ($children as $child) {
+		for($childIndex = 0; $childIndex < $childrenLength; $childIndex++) {
+			$child = $children->item($childIndex);
 			if (trim($child->nodeValue) === '') {
 				continue;
 			}
@@ -129,9 +135,11 @@ class ComponentParser implements ComponentParserInterface
 			if ($child->nodeName === self::TEMPLATE_TAG) {
 				$templateSlotName = $child->hasAttributes() ? $child->getAttribute(self::SLOT_TAG) : null;
 				$fragment = $this->document->createDocumentFragment();
+				$childNodes = $child->childNodes;
+				$childNodesLength = $childNodes->length;
 
-				foreach ($child->childNodes as $node) {
-					// Import the node to the new document, to prevent "wrong document" errors
+				for ($childNodeIndex = 0; $childNodeIndex < $childNodesLength; $childNodeIndex++) {
+					$node = $childNodes->item($childNodeIndex);
 					$importedParagraph = $this->document->importNode($node, true);
 					$fragment->appendChild($importedParagraph);
 				}
@@ -154,8 +162,10 @@ class ComponentParser implements ComponentParserInterface
 	protected function replaceSlotWithComponentChild(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName): void
 	{
 		$childSlotName = $child instanceof DOMDocumentFragment ? $templateSlotName  : $child->getAttribute(self::SLOT_TAG);
+		$length = $slots->length;
 
-		foreach ($slots as $slot) {
+		for ($i = 0; $i < $length; $i++) {
+			$slot = $slots->item($i);
 			$slotName = $slot->getAttribute('name');
 			if ((empty($slotName) && empty($childSlotName)) || $slotName === $childSlotName) {
 				$slot->parentNode->replaceChild($this->document->importNode($child, true), $slot);
@@ -180,7 +190,7 @@ class ComponentParser implements ComponentParserInterface
 		}
 	}
 
-	protected function replaceComponentTag(DOMElement $element, string $replacement, string $html): string
+	protected function replaceComponentTag(DOMNode $element, string $replacement, string $html): string
 	{
 		return preg_replace(
 			'/<' . $element->tagName . '(.*?)>(.*?)<\/' . $element->tagName . '>|<' . $element->tagName . '(.*?)\/>/s',

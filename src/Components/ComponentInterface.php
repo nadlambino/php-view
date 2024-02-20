@@ -15,4 +15,6 @@ interface ComponentInterface
 	public function getHiddenProps(): array;
 
 	public function isHiddenProp(string $name): bool;
+
+	public function shouldPropBeHidden(string $name, mixed $value): bool;
 }

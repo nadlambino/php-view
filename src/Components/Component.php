@@ -93,4 +93,9 @@ abstract class Component implements ComponentInterface
 	{
 		return in_array($name, $this->hiddenProps);
 	}
+
+	public function shouldPropBeHidden(string $name, mixed $value): bool
+	{
+		return false;
+	}
 }

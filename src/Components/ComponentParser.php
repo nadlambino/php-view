@@ -107,9 +107,11 @@ class ComponentParser implements ComponentParserInterface
 		$visibleAttributes = [];
 
 		foreach ($attributes as $name => $value) {
-			if ($component->isHiddenProp($name) === false) {
-				$visibleAttributes[$name] = $value;
+			if ($component->isHiddenProp($name) || $component->shouldPropBeHidden($name, $value)) {
+				continue;
 			}
+
+			$visibleAttributes[$name] = $value;
 		}
 
 		return $visibleAttributes;

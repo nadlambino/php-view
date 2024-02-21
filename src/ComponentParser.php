@@ -243,39 +243,28 @@ class ComponentParser implements ParserInterface
 	protected function replaceComponentTag(DOMNode $element, string $replacement, string $html): string
 	{
 		$name = $element->nodeName;
-		$selfClosingPattern = '/<' . $name . '([^\\r\\n].*?)\/>/';
 
-		$selfClosed = preg_replace(
-			$selfClosingPattern,
-			$replacement,
-			$html,
-			1
-		);
+		$selfClosingPattern = '/<' . $name . '(\s?.*?)\/>/';
+		$selfClosed = preg_replace($selfClosingPattern, $replacement, $html, 1);
 
 		if ($selfClosed !== null && $selfClosed !== $html) {
 			return $selfClosed;
 		}
 
-		$selfClosingPatternWithNewLine = '/<' . $name . '(.*?)\/>/s';
-
-		$withNewLine = preg_replace(
-			$selfClosingPatternWithNewLine,
-			$replacement,
-			$html,
-			1
-		);
+		$selfClosingWithNewLinePattern = '/<' . $name . '(\s?[\\r\\n].*?)\/>/s';
+		$withNewLine = preg_replace($selfClosingWithNewLinePattern, $replacement, $html, 1);
 
 		if ($withNewLine !== null && $withNewLine !== $html) {
 			return $withNewLine;
 		}
 
-		$fullClosingPattern = '/<' . $name . '(.*?)>(.*?)<\/' . $name . '>/s';
+		$fullClosingPattern = '/<' . $name . '(.*?)>(\s?.*?)<\/' . $name . '>/s';
+		$fullClosed = preg_replace($fullClosingPattern, $replacement, $html, 1);
 
-		return preg_replace(
-			$fullClosingPattern,
-			$replacement,
-			$html,
-			1
-		);
+		if ($fullClosed !== null && $fullClosed !== $html) {
+			return $fullClosed;
+		}
+
+		return $html;
 	}
 }

@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Inspira\View\Components;
-
-use Inspira\View\View;
+namespace Inspira\View;
 
 interface ComponentInterface
 {

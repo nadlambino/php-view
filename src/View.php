@@ -6,8 +6,6 @@ namespace Inspira\View;
 
 use Inspira\Container\Container;
 use Inspira\Contracts\Renderable;
-use Inspira\View\Components\ComponentInterface;
-use Inspira\View\Components\ComponentParser;
 use Inspira\View\Exceptions\ComponentNotFoundException;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;

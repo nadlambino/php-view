@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Inspira\View;
 
-class ViewParser
+class ViewParser implements ParserInterface
 {
 	/**
 	 * An array of block contents where key is the block name and value is the content

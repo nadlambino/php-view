@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Inspira\View\Components\ComponentInterface;
+use Inspira\View\ComponentInterface;
 use Inspira\View\View;
 
 if (!function_exists('view')) {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Inspira\View\Components;
+namespace Inspira\View;
 
 use DOMDocument;
 use DOMDocumentFragment;
@@ -12,7 +12,6 @@ use DOMNodeList;
 use DOMText;
 use DOMXPath;
 use Inspira\Container\Container;
-use Inspira\View\View;
 
 class ComponentParser implements ParserInterface
 {

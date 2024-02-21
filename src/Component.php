@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Inspira\View\Components;
+namespace Inspira\View;
 
-use Inspira\View\View;
 use ReflectionClass;
 use ReflectionProperty;
 

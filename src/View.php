@@ -23,9 +23,9 @@ class View implements Renderable
 
 	private array $components = [];
 
-	private string $prefix = 'app';
+	private string $componentPrefix = 'app';
 
-	private ?string $namespace = null;
+	private ?string $componentNamespace = null;
 
 	private string $componentViewsPath = '';
 
@@ -113,7 +113,7 @@ class View implements Renderable
 			}
 
 			$contents = $this->includeFiles($html, true);
-			$contents = (new ComponentParser($this->container, $this, $contents, $this->prefix))->parse();
+			$contents = (new ComponentParser($this->container, $this, $contents, $this->componentPrefix))->parse();
 			$contents = (new ViewParser($contents))->parse();
 
 			$this->save($filename, $contents);
@@ -189,7 +189,7 @@ class View implements Renderable
 			}
 
 			$contents = $this->includeFiles($file);
-			$contents = (new ComponentParser($this->container, $this, $contents, $this->prefix))->parse();
+			$contents = (new ComponentParser($this->container, $this, $contents, $this->componentPrefix))->parse();
 			$contents = (new ViewParser($contents))->parse();
 
 			$this->save($filename, $contents);
@@ -264,14 +264,14 @@ class View implements Renderable
 
 	public function setComponentPrefix(string $prefix): static
 	{
-		$this->prefix = $prefix;
+		$this->componentPrefix = $prefix;
 
 		return $this;
 	}
 
 	public function autoloadComponentsFrom(string $namespace): self
 	{
-		$this->namespace = $namespace;
+		$this->componentNamespace = $namespace;
 
 		return $this;
 	}
@@ -289,9 +289,9 @@ class View implements Renderable
 			return $this->components[$key];
 		}
 
-		if ($this->namespace) {
+		if ($this->componentNamespace) {
 			$class = kebab_to_pascal($key);
-			$component = $this->namespace . '\\' . $class;
+			$component = $this->componentNamespace . '\\' . $class;
 
 			if (class_exists($component)) {
 				return $component;

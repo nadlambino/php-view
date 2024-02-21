@@ -117,8 +117,8 @@ class View implements Renderable
 			$contents = (new ViewParser($contents))->parse();
 
 			$this->save($filename, $contents);
-		} catch (ViewNotFoundException $exception) {
-			if ($this->throwNotFound) {
+		} catch (ViewNotFoundException|ComponentNotFoundException $exception) {
+			if ($this->throwNotFound || $exception instanceof ComponentNotFoundException) {
 				throw $exception;
 			}
 
@@ -195,8 +195,8 @@ class View implements Renderable
 			$this->save($filename, $contents);
 
 			return $filename;
-		} catch (ViewNotFoundException $exception) {
-			if ($this->throwNotFound) {
+		} catch (ViewNotFoundException|ComponentNotFoundException $exception) {
+			if ($this->throwNotFound || $exception instanceof ComponentNotFoundException) {
 				throw $exception;
 			}
 

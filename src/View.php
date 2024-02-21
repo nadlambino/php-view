@@ -150,6 +150,10 @@ class View implements Renderable
 
 	public function clearCache(): bool
 	{
+		if (!is_dir($this->cacheDirectory)) {
+			return true;
+		}
+
 		foreach (scandir($this->cacheDirectory) as $file) {
 			if ($file === '.' || $file === '..') {
 				continue;

@@ -140,12 +140,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nadlambino/php-utils.git",
-                "reference": "99a93709ba27a9f747abdcb5fe4f0ee1a6801490"
+                "reference": "23e07048c7e36b67198a638aaafcec99e91f9388"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nadlambino/php-utils/zipball/99a93709ba27a9f747abdcb5fe4f0ee1a6801490",
-                "reference": "99a93709ba27a9f747abdcb5fe4f0ee1a6801490",
+                "url": "https://api.github.com/repos/nadlambino/php-utils/zipball/23e07048c7e36b67198a638aaafcec99e91f9388",
+                "reference": "23e07048c7e36b67198a638aaafcec99e91f9388",
                 "shasum": ""
             },
             "require": {
@@ -177,7 +177,7 @@
                 "issues": "https://github.com/nadlambino/php-utils/issues",
                 "source": "https://github.com/nadlambino/php-utils/tree/master"
             },
-            "time": "2024-02-20T10:27:21+00:00"
+            "time": "2024-02-21T12:23:21+00:00"
         },
         {
             "name": "psr/container",
@@ -294,12 +294,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nadlambino/php-error-page.git",
-                "reference": "55df6079a7d119ee8ed29d3e896f8e178742124c"
+                "reference": "11a7323be3d2232d8b204232342dc0443743f8a5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nadlambino/php-error-page/zipball/55df6079a7d119ee8ed29d3e896f8e178742124c",
-                "reference": "55df6079a7d119ee8ed29d3e896f8e178742124c",
+                "url": "https://api.github.com/repos/nadlambino/php-error-page/zipball/11a7323be3d2232d8b204232342dc0443743f8a5",
+                "reference": "11a7323be3d2232d8b204232342dc0443743f8a5",
                 "shasum": ""
             },
             "require": {
@@ -333,7 +333,7 @@
                 "issues": "https://github.com/nadlambino/php-error-page/issues",
                 "source": "https://github.com/nadlambino/php-error-page/tree/master"
             },
-            "time": "2024-02-03T11:29:16+00:00"
+            "time": "2024-02-21T07:44:51+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",

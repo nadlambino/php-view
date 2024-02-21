@@ -27,7 +27,7 @@ class View implements Renderable
 
 	private ?string $componentNamespace = null;
 
-	private string $componentViewsPath = '';
+	private string $componentViewsPath = 'components';
 
 	private string $notFoundView = 'resources/errors/404.php';
 

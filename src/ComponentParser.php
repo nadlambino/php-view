@@ -15,6 +15,8 @@ use Inspira\Container\Container;
 
 class ComponentParser implements ParserInterface
 {
+	protected DOMDocument $document;
+
 	protected DOMXPath $documentXPath;
 
 	protected const SLOT_TAG = 'slot';
@@ -26,19 +28,18 @@ class ComponentParser implements ParserInterface
 		protected View         $view,
 		protected string       $html,
 		protected string       $prefix = 'app',
-		protected ?DOMDocument $document = null
 	)
 	{
-		$this->document ??= new DOMDocument();
-		$this->safeLoadDocument($this->html);
+		$this->document = new DOMDocument();
+		$this->safeLoadDocument($this->document, $this->html);
 		$this->documentXPath = new DOMXPath($this->document);
 	}
 
-	protected function safeLoadDocument(string $html, bool $preserveWhiteSpace = false, bool $noDoctype = true)
+	protected function safeLoadDocument(DOMDocument $document, string $html)
 	{
 		libxml_use_internal_errors(true);
-		$this->document->preserveWhiteSpace = $preserveWhiteSpace;
-		$noDoctype ? $this->document->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD) : $this->document->loadHTML($html);
+		$document->preserveWhiteSpace = false;
+		$document->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 		libxml_use_internal_errors(false);
 	}
 
@@ -118,10 +119,11 @@ class ComponentParser implements ParserInterface
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string
 	{
-		$this->safeLoadDocument($html);
+		$document = new DOMDocument();
+		$this->safeLoadDocument($document, $html);
 
-		$wrapperElement = $this->document->getElementsByTagName('*')->item(0);
-		$wrapperElement = $this->createFragmentIfTemplated($wrapperElement);
+		$wrapperElement = $document->getElementsByTagName('*')->item(0);
+		$wrapperElement = $this->createFragmentIfTemplated($wrapperElement, $document);
 
 		$element = match (true) {
 			$wrapperElement instanceof DOMDocumentFragment
@@ -135,21 +137,22 @@ class ComponentParser implements ParserInterface
 		};
 
 		if ($element === null) {
-			return $this->document->saveHTML($wrapperElement);
+			return $document->saveHTML($wrapperElement);
 		}
 
 		foreach ($attributes as $key => $value) {
 			$element->setAttribute($key, $value);
 		}
 
-		return $this->document->saveHTML($element);
+		return $document->saveHTML($element);
 	}
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string
 	{
-		$this->safeLoadDocument($html);
+		$document = new DOMDocument();
+		$this->safeLoadDocument($document, $html);
 
-		$element = $this->document->getElementsByTagName('*')->item(0);
+		$element = $document->getElementsByTagName('*')->item(0);
 
 		if (is_null($element)) {
 			return $html;
@@ -169,22 +172,22 @@ class ComponentParser implements ParserInterface
 
 			if ($hasSlots === true) {
 				$templateSlotName = $child->hasAttributes() ? $child->getAttribute(self::SLOT_TAG) : null;
-				$child = $this->createFragmentIfTemplated($child);
-				$this->replaceSlotWithComponentContents($slots, $child, $templateSlotName);
+				$child = $this->createFragmentIfTemplated($child, $document);
+				$this->replaceSlotWithComponentContents($slots, $child, $templateSlotName, $document);
 			} else {
-				$element->appendChild($this->document->importNode($child, true));
+				$element->appendChild($document->importNode($child, true));
 			}
 		}
 
-		$this->commentUnusedSlots($slots);
+		$this->commentUnusedSlots($slots, $document);
 
-		return $this->document->saveHTML($element);
+		return $document->saveHTML($element);
 	}
 
-	protected function createFragmentIfTemplated(DOMNode $template): DOMNode
+	protected function createFragmentIfTemplated(DOMNode $template, DOMDocument $document): DOMNode
 	{
 		if ($template->nodeName === self::TEMPLATE_TAG) {
-			$fragment = $this->document->createDocumentFragment();
+			$fragment = $document->createDocumentFragment();
 			$childNodes = $template->childNodes;
 			$childNodesLength = $childNodes->length;
 
@@ -195,7 +198,7 @@ class ComponentParser implements ParserInterface
 					continue;
 				}
 
-				$imported = $this->document->importNode($node, true);
+				$imported = $document->importNode($node, true);
 				$fragment->appendChild($imported);
 			}
 
@@ -205,7 +208,7 @@ class ComponentParser implements ParserInterface
 		return $template;
 	}
 
-	protected function replaceSlotWithComponentContents(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName): void
+	protected function replaceSlotWithComponentContents(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName, DOMDocument $document): void
 	{
 		$childSlotName = $child->hasAttributes()
 			? $child->getAttribute(self::SLOT_TAG)
@@ -218,7 +221,7 @@ class ComponentParser implements ParserInterface
 			$slotName = $slot->getAttribute('name');
 			if ((empty($slotName) && empty($childSlotName)) || $slotName === $childSlotName) {
 				$child->removeAttribute(self::SLOT_TAG);
-				$slot->parentNode->replaceChild($this->document->importNode($child, true), $slot);
+				$slot->parentNode->replaceChild($document->importNode($child, true), $slot);
 
 				break;
 			}
@@ -231,11 +234,11 @@ class ComponentParser implements ParserInterface
 	 * @param DOMNodeList $slots
 	 * @return void
 	 */
-	protected function commentUnusedSlots(DOMNodeList $slots): void
+	protected function commentUnusedSlots(DOMNodeList $slots, DOMDocument $document): void
 	{
 		for ($i = 0; $i < $slots->length; $i++) {
 			$slot = $slots->item($i);
-			$comment = $this->document->createComment($this->document->saveHTML($slot));
+			$comment = $document->createComment($document->saveHTML($slot));
 			$slot->parentNode->replaceChild($comment, $slot);
 		}
 	}

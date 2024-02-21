@@ -289,6 +289,8 @@ class View implements Renderable
 			return $this->components[$key];
 		}
 
+		$suggestions = [];
+
 		if ($this->componentNamespace) {
 			$class = kebab_to_pascal($key);
 			$component = $this->componentNamespace . '\\' . $class;
@@ -296,9 +298,18 @@ class View implements Renderable
 			if (class_exists($component)) {
 				return $component;
 			}
+
+			$suggestions[] = "You are auto-loading your components from `$this->componentNamespace` namespace. Make sure the component is under this namespace or the component name is correct.";
 		}
 
-		throw new ComponentNotFoundException("Component `$key` is not found. Did you register this component?");
+		$message = "Component `$key` is not found.";
+		$closest = closest_match($key, array_keys($this->components));
+
+		if (!empty($closest)) {
+			array_unshift($suggestions, "Did you register this component or do you mean `$closest`?");
+		}
+
+		throw new ComponentNotFoundException($message, suggestions: $suggestions);
 	}
 
 	private function save(string $filename, string $contents): void

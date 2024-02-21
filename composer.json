@@ -6,7 +6,8 @@
         "php": "^8.3",
         "inspira/contracts": "dev-master",
         "inspira/container": "dev-master",
-        "inspira/utils": "dev-master"
+        "inspira/utils": "dev-master",
+        "inspira/closest-match": "dev-master"
     },
     "require-dev": {
         "inspira/error-page": "dev-master",

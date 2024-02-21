@@ -14,7 +14,7 @@ use DOMXPath;
 use Inspira\Container\Container;
 use Inspira\View\View;
 
-class ComponentParser implements ComponentParserInterface
+class ComponentParser implements ParserInterface
 {
 	protected DOMXPath $documentXPath;
 

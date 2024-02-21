@@ -125,11 +125,7 @@ class View implements Renderable
 			return $component->setComponentProps($data)->render();
 		}
 
-		if (
-			class_exists($component)
-			&& ($componentInstance = $this->container->make($component))
-			&& $componentInstance instanceof ComponentInterface
-		) {
+		if (class_exists($component) && ($componentInstance = $this->container->make($component)) && $componentInstance instanceof ComponentInterface) {
 			return $componentInstance->setComponentProps($data)->render();
 		}
 
@@ -143,30 +139,37 @@ class View implements Renderable
 	 *
 	 * @param string $html
 	 * @param array $data
+	 * @param string $filename
 	 * @return $this
+	 * @throws ViewNotFoundException
 	 */
-	public function html(string $html, array $data = []): self
+	public function html(string $html, array $data = [], string $filename = ''): self
 	{
-		if (!isset($this->cacheFilename)) {
-			$this->generateCacheFilename((string)microtime());
+		try {
+			if (empty($filename)) {
+				$filename = $this->createEncodedFilename((string)microtime());
+			}
+
+			if ($this->useCached && file_exists($filename)) {
+				$this->cachedContents = self::requireView($filename, $data);
+
+				return $this;
+			}
+
+			$contents = $this->includeFiles($html, false);
+			$contents = (new ComponentParser($this->container, $this, $contents, $this->prefix))->parse();
+			$contents = (new ViewParser($contents))->parse();
+
+			$this->save($filename, $contents);
+		} catch (ViewNotFoundException $exception) {
+			if ($this->throwNotFound) {
+				throw $exception;
+			}
+
+			$filename =  $this->notFoundView;
 		}
 
-		if ($this->useCached && file_exists($this->cacheFilename)) {
-			$this->cachedContents = self::requireView($this->cacheFilename, $data);
-
-			return $this;
-		}
-
-		$this->fileContents = $html;
-
-		$this->compileComponents()
-			->compileBlocks()
-			->compileYields()
-			->compileEscapedEchos()
-			->compileUnescapedEchos()
-			->save();
-
-		$this->cachedContents = self::requireView($this->cacheFilename, $data);
+		$this->cachedContents = self::requireView($filename, $data);
 
 		return $this;
 	}
@@ -379,13 +382,7 @@ class View implements Renderable
 	 */
 	private function includeFiles(string $file, bool $asFile = true): string
 	{
-		$file = $this->getFullFilePath($file);
-
-		if (!file_exists($file)) {
-			throw new ExtendedViewLayoutNotFoundException("Extended view `$file` is not found");
-		}
-
-		$contents = file_get_contents($file);
+		$contents = $this->getFileContents($file, $asFile);
 
 		// Find and replace <!-- include|extend -->
 		preg_match_all('/<!--\s*(extend|include)\s+([a-zA-Z\d_\/-]+)\s*-->/i', $contents, $matches, PREG_SET_ORDER);
@@ -401,6 +398,21 @@ class View implements Renderable
 		}
 
 		return $contents ?: '';
+	}
+
+	private function getFileContents(string $fileOrContents, bool $asFile): string
+	{
+		if ($asFile === false) {
+			return $fileOrContents;
+		}
+
+		$file = $this->getFullFilePath($fileOrContents);
+
+		if (!file_exists($file)) {
+			throw new ExtendedViewLayoutNotFoundException("Extended view `$file` is not found");
+		}
+
+		return file_get_contents($file);
 	}
 
 	/**

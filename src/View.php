@@ -182,35 +182,10 @@ class View implements Renderable
 	 */
 	public function raw(string $path, array $data = []): self
 	{
-		$path = $this->getFullFilePath($path, false);
-
-		if (!file_exists($path)) {
-			if ($this->throwNotFound) {
-				throw new RawViewPathNotFoundException("Raw view path `$path` is not found.");
-			}
-
-			return $this->make($this->notFoundView, $data);
-		}
-
-		$this->generateCacheFilename($path);
-
-		if ($this->useCached && file_exists($this->cacheFilename)) {
-			$this->cachedContents = self::requireView($this->cacheFilename, $data);
-
-			return $this;
-		}
-
-		$this->fileContents = file_get_contents($path);
-
-		$this->compileIncludedFile($path)
-			->compileComponents()
-			->compileBlocks()
-			->compileYields()
-			->compileEscapedEchos()
-			->compileUnescapedEchos()
-			->save();
-
-		$this->cachedContents = self::requireView($this->cacheFilename, $data);
+		$this->cachedContents = self::requireView(
+			$this->createCacheFile($path, false),
+			$data
+		);
 
 		return $this;
 	}

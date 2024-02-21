@@ -65,11 +65,4 @@ trait Component
 
 		throw new ComponentNotFoundException("Component `$key` is not found. Did you register this component?");
 	}
-
-	protected function compileComponents(): self
-	{
-		$this->fileContents = (new ComponentParser($this->container, $this, $this->fileContents, $this->prefix))->parse();
-
-		return $this;
-	}
 }

@@ -29,8 +29,7 @@ abstract class Component implements ComponentInterface
 
 		if ($html = $this->html()) {
 			return View::getInstance()
-				->generateCacheFilename(static::class)
-				->html($html, $data);
+				->html($html, $data, static::class);
 		}
 
 		$this->view ??= camel_to_kebab(class_basename(static::class));

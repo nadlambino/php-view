@@ -8,6 +8,7 @@ use Inspira\Container\Container;
 use Inspira\Contracts\Renderable;
 use Inspira\View\Components\ComponentInterface;
 use Inspira\View\Components\ComponentParser;
+use Inspira\View\Exceptions\ComponentNotFoundException;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
 
@@ -16,36 +17,20 @@ use Inspira\View\Exceptions\ViewNotFoundException;
  */
 class View implements Renderable
 {
-	use Component;
-
-	/**
-	 * Current view instance
-	 *
-	 * @var View $instance
-	 */
 	private static View $instance;
 
-	/**
-	 * The parent directory where cached views are stored
-	 * The cached files will be stored under `/views`
-	 *
-	 * @var string $cacheDirectory
-	 */
 	private string $cacheDirectory;
 
-	/**
-	 * The content of the cached file
-	 *
-	 * @var string $contents
-	 */
 	private string $contents = '';
 
-	/**
-	 * The file to render when the view file is not existing
-	 * Only render this file when the $throwNotFound is false
-	 *
-	 * @var string $notFoundView
-	 */
+	private array $components = [];
+
+	private string $prefix = 'app';
+
+	private ?string $namespace = null;
+
+	private string $componentViewsPath = '';
+
 	private string $notFoundView = 'resources/errors/404.php';
 
 	public function __construct(
@@ -61,13 +46,6 @@ class View implements Renderable
 		self::$instance = $this;
 	}
 
-	/**
-	 * Set the view to render when the view file is not found
-	 *
-	 * @param string $view
-	 * @return $this
-	 * @throws
-	 */
 	public function setNotFoundView(string $view): static
 	{
 		$file = str_ends_with($view, '.php') ? $view : $view . '.php';
@@ -98,14 +76,6 @@ class View implements Renderable
 		return $this->render();
 	}
 
-	/**
-	 * Create a cache file of the view file with extracted data as variables
-	 *
-	 * @param string $view
-	 * @param array $data
-	 * @return self
-	 * @throws ViewNotFoundException
-	 */
 	public function make(string $view, array $data = []): self
 	{
 		$this->contents = self::requireView(
@@ -131,15 +101,6 @@ class View implements Renderable
 		return $this->make($view, $data);
 	}
 
-	/**
-	 * Render a view from the given html.
-	 *
-	 * @param string $html
-	 * @param array $data
-	 * @param string $filename
-	 * @return $this
-	 * @throws ViewNotFoundException
-	 */
 	public function html(string $html, array $data = [], string $filename = ''): self
 	{
 		try {
@@ -171,12 +132,6 @@ class View implements Renderable
 		return $this;
 	}
 
-	/**
-	 * @param string $path
-	 * @param array $data
-	 * @return $this
-	 * @throws
-	 */
 	public function raw(string $path, array $data = []): self
 	{
 		$this->contents = self::requireView(
@@ -216,15 +171,6 @@ class View implements Renderable
 		return true;
 	}
 
-	/**
-	 * Read the content of the view file
-	 *
-	 * @param string $view
-	 * @param bool $fromViews
-	 * @return string
-	 * @throws ExtendedViewLayoutNotFoundException
-	 * @throws ViewNotFoundException
-	 */
 	private function createCacheFile(string $view, bool $fromViews = true): string
 	{
 		try {
@@ -268,13 +214,6 @@ class View implements Renderable
 		return $this->cacheDirectory . substr($encoded, -100);
 	}
 
-	/**
-	 * Get the full path of given view file
-	 *
-	 * @param string $view
-	 * @param bool $fromViews
-	 * @return string
-	 */
 	private function getFullFilePath(string $view, bool $fromViews = true): string
 	{
 		$file = match (true) {
@@ -288,22 +227,13 @@ class View implements Renderable
 		return !str_ends_with($file, '.php') ? $file . '.php' : $file;
 	}
 
-	/**
-	 * Recursively resolve the included files and it's code blocks
-	 *
-	 * @param string $file
-	 * @param bool $asHtml
-	 * @return string
-	 * @throws ExtendedViewLayoutNotFoundException
-	 */
 	private function includeFiles(string $file, bool $asHtml = false): string
 	{
-		$contents = $this->getFileContents($file, $asHtml);
+		$contents = $asHtml ? $file : $this->getFileContents($file);
 
-		// Find and replace <!-- include|extend -->
 		preg_match_all('/<!--\s*(extend|include)\s+([a-zA-Z\d_\/-]+)\s*-->/i', $contents, $matches, PREG_SET_ORDER);
+
 		foreach ($matches as $value) {
-			// Recursively include files
 			$includedFileContents = $this->includeFiles(end($value));
 
 			if (empty($includedFileContents)) {
@@ -316,12 +246,8 @@ class View implements Renderable
 		return $contents ?: '';
 	}
 
-	private function getFileContents(string $fileOrContents, bool $asHtml): string
+	private function getFileContents(string $fileOrContents): string
 	{
-		if ($asHtml === true) {
-			return $fileOrContents;
-		}
-
 		$file = $this->getFullFilePath($fileOrContents);
 
 		if (!file_exists($file)) {
@@ -331,13 +257,52 @@ class View implements Renderable
 		return file_get_contents($file);
 	}
 
-	/**
-	 * Save file into cache
-	 *
-	 * @param string $filename
-	 * @param string $contents
-	 * @return void
-	 */
+	public function setComponentViewsPath(string $path): static
+	{
+		$this->componentViewsPath = $path;
+
+		return $this;
+	}
+
+	public function setComponentPrefix(string $prefix): static
+	{
+		$this->prefix = $prefix;
+
+		return $this;
+	}
+
+	public function autoloadComponentsFrom(string $namespace): self
+	{
+		$this->namespace = $namespace;
+
+		return $this;
+	}
+
+	public function registerComponent(string $key, string $component): self
+	{
+		$this->components[$key] = $component;
+
+		return $this;
+	}
+
+	public function getComponentClass(string $key): string
+	{
+		if (isset($this->components[$key])) {
+			return $this->components[$key];
+		}
+
+		if ($this->namespace) {
+			$class = kebab_to_pascal($key);
+			$component = $this->namespace . '\\' . $class;
+
+			if (class_exists($component)) {
+				return $component;
+			}
+		}
+
+		throw new ComponentNotFoundException("Component `$key` is not found. Did you register this component?");
+	}
+
 	private function save(string $filename, string $contents): void
 	{
 		file_put_contents(
@@ -346,14 +311,6 @@ class View implements Renderable
 		);
 	}
 
-	/**
-	 * Require view file and extract the data to make it available within the required file
-	 * Used static method so that the `$this` variable won't be available in the view file
-	 *
-	 * @param string $path
-	 * @param array $data
-	 * @return string
-	 */
 	private static function requireView(string $path, array $data = []): string
 	{
 		extract($data);

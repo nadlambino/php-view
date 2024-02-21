@@ -243,19 +243,33 @@ class ComponentParser implements ParserInterface
 	protected function replaceComponentTag(DOMNode $element, string $replacement, string $html): string
 	{
 		$name = $element->nodeName;
-		$selfClosingPattern = '/<' . $name . '(.*?)\/>/';
-		$fullClosingPattern = '/<' . $name . '(.*?)>(.*?)<\/' . $name . '>/s';
+		$selfClosingPattern = '/<' . $name . '([^\\r\\n].*?)\/>/';
 
-		$newHtml = preg_replace(
+		$selfClosed = preg_replace(
 			$selfClosingPattern,
 			$replacement,
 			$html,
 			1
 		);
 
-		if ($newHtml !== null && $newHtml !== $html) {
-			return $newHtml;
+		if ($selfClosed !== null && $selfClosed !== $html) {
+			return $selfClosed;
 		}
+
+		$selfClosingPatternWithNewLine = '/<' . $name . '(.*?)\/>/s';
+
+		$withNewLine = preg_replace(
+			$selfClosingPatternWithNewLine,
+			$replacement,
+			$html,
+			1
+		);
+
+		if ($withNewLine !== null && $withNewLine !== $html) {
+			return $withNewLine;
+		}
+
+		$fullClosingPattern = '/<' . $name . '(.*?)>(.*?)<\/' . $name . '>/s';
 
 		return preg_replace(
 			$fullClosingPattern,

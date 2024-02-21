@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace Inspira\View;
 
 use Inspira\Container\Container;
-use Inspira\Container\Exceptions\NonInstantiableBindingException;
-use Inspira\Container\Exceptions\UnresolvableBindingException;
-use Inspira\Container\Exceptions\UnresolvableBuiltInTypeException;
-use Inspira\Container\Exceptions\UnresolvableMissingTypeException;
 use Inspira\Contracts\Renderable;
 use Inspira\View\Components\ComponentInterface;
+use Inspira\View\Components\ComponentParser;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\RawViewPathNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
@@ -114,17 +111,10 @@ class View implements Renderable
 	 */
 	public function make(string $view, array $data = []): self
 	{
-		try {
-			$this->createCacheFile($view);
-		} catch (ViewNotFoundException $exception) {
-			if ($this->throwNotFound) {
-				throw $exception;
-			}
-
-			$file = $this->notFoundView;
-		}
-
-		$this->cachedContents = self::requireView($file ?? $this->cacheFilename, $data);
+		$this->cachedContents = self::requireView(
+			$this->createCacheFile($view),
+			$data
+		);
 
 		return $this;
 	}
@@ -189,7 +179,7 @@ class View implements Renderable
 	 */
 	public function raw(string $path, array $data = []): self
 	{
-		$path = $this->getViewFile($path, false);
+		$path = $this->getFullFilePath($path, false);
 
 		if (!file_exists($path)) {
 			if ($this->throwNotFound) {
@@ -282,33 +272,44 @@ class View implements Renderable
 	 * Read the content of the view file
 	 *
 	 * @param string $view
-	 * @return void
+	 * @param bool $fromViews
+	 * @return string
+	 * @throws ExtendedViewLayoutNotFoundException
 	 * @throws ViewNotFoundException
 	 */
-	private function createCacheFile(string $view): void
+	private function createCacheFile(string $view, bool $fromViews = true): string
 	{
-		$file = $this->getViewFile($view);
-		if (!file_exists($file)) {
-			throw new ViewNotFoundException(sprintf("View `%s` is not found", $view));
+		try {
+			$file = $this->getFullFilePath($view, $fromViews);
+
+			if (!file_exists($file)) {
+				throw new ViewNotFoundException(sprintf("View `%s` is not found", $view));
+			}
+
+			if (!file_exists($this->cacheDirectory)) {
+				mkdir($this->cacheDirectory, 0744, true);
+			}
+
+			$filename = $this->createEncodedFilename($file);
+
+			if ($this->useCached && file_exists($filename)) {
+				return $file;
+			}
+
+			$contents = $this->includeFiles($file);
+			$contents = (new ComponentParser($this->container, $this, $contents, $this->prefix))->parse();
+			$contents = (new ViewParser($contents))->parse();
+
+			$this->save($filename, $contents);
+
+			return $filename;
+		} catch (ViewNotFoundException $exception) {
+			if ($this->throwNotFound) {
+				throw $exception;
+			}
+
+			return $this->notFoundView;
 		}
-
-		if (!file_exists($this->cacheDirectory)) {
-			mkdir($this->cacheDirectory, 0744, true);
-		}
-
-		$this->generateCacheFilename($file);
-
-		if ($this->useCached && file_exists($this->cacheFilename)) {
-			return;
-		}
-
-		$this->compileIncludedFile($file)
-			->compileComponents()
-			->compileBlocks()
-			->compileYields()
-			->compileEscapedEchos()
-			->compileUnescapedEchos()
-			->save();
 	}
 
 	/**
@@ -326,20 +327,29 @@ class View implements Renderable
 		return $this;
 	}
 
+	public function createEncodedFilename(string $filename): string
+	{
+		$filename = str_replace([DIRECTORY_SEPARATOR, '\\', '/', '..'], ['_'], $filename);
+		$encoded = base64_encode($filename);
+
+		return $this->cacheDirectory . substr($encoded, -100);
+	}
+
 	/**
 	 * Get the full path of given view file
 	 *
 	 * @param string $view
-	 * @param bool $fromViewsPath
+	 * @param bool $fromViews
 	 * @return string
 	 */
-	private function getViewFile(string $view, bool $fromViewsPath = true): string
+	private function getFullFilePath(string $view, bool $fromViews = true): string
 	{
 		$file = match (true) {
-			$fromViewsPath === false => $view,
+			$fromViews === false => $view,
 			str_contains($view, $this->viewsPath) => $view,
 			default => $this->viewsPath . DIRECTORY_SEPARATOR . $view
 		};
+
 		$file = str_replace(' ', '', $file);
 
 		return !str_ends_with($file, '.php') ? $file . '.php' : $file;
@@ -363,12 +373,14 @@ class View implements Renderable
 	 * Recursively resolve the included files and it's code blocks
 	 *
 	 * @param string $file
+	 * @param bool $asFile
 	 * @return string
-	 * @throws
+	 * @throws ExtendedViewLayoutNotFoundException
 	 */
-	private function includeFiles(string $file): string
+	private function includeFiles(string $file, bool $asFile = true): string
 	{
-		$file = $this->getViewFile($file);
+		$file = $this->getFullFilePath($file);
+
 		if (!file_exists($file)) {
 			throw new ExtendedViewLayoutNotFoundException("Extended view `$file` is not found");
 		}
@@ -465,13 +477,15 @@ class View implements Renderable
 	/**
 	 * Save file into cache
 	 *
+	 * @param string $filename
+	 * @param string $contents
 	 * @return void
 	 */
-	private function save(): void
+	private function save(string $filename, string $contents): void
 	{
 		file_put_contents(
-			$this->cacheFilename,
-			'<?php class_exists(\'' . __CLASS__ . '\') or exit; ?>' . PHP_EOL . $this->fileContents
+			$filename,
+			'<?php class_exists(\'' . __CLASS__ . '\') or exit; ?>' . PHP_EOL . $contents
 		);
 	}
 

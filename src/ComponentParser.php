@@ -232,6 +232,7 @@ class ComponentParser implements ParserInterface
 	 * Comment out unused slots. Use for loop instead of foreach to avoid modifying the DOMNodeList object while on the loop.
 	 *
 	 * @param DOMNodeList $slots
+	 * @param DOMDocument $document
 	 * @return void
 	 */
 	protected function commentUnusedSlots(DOMNodeList $slots, DOMDocument $document): void

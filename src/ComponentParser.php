@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Inspira\View;
 
-use DOMDocument;
 use DOMDocumentFragment;
 use DOMElement;
 use DOMNode;
@@ -12,12 +11,11 @@ use DOMNodeList;
 use DOMText;
 use DOMXPath;
 use Inspira\Container\Container;
+use IvoPetkov\HTML5DOMDocument;
 
 class ComponentParser implements ParserInterface
 {
-	protected DOMDocument $document;
-
-	protected DOMXPath $documentXPath;
+	protected HTML5DOMDocument $document;
 
 	protected const SLOT_TAG = 'slot';
 
@@ -30,12 +28,11 @@ class ComponentParser implements ParserInterface
 		protected string       $prefix = 'app',
 	)
 	{
-		$this->document = new DOMDocument();
+		$this->document = new HTML5DOMDocument();
 		$this->safeLoadDocument($this->document, $this->html);
-		$this->documentXPath = new DOMXPath($this->document);
 	}
 
-	protected function safeLoadDocument(DOMDocument $document, string $html)
+	protected function safeLoadDocument(HTML5DOMDocument $document, string $html)
 	{
 		libxml_use_internal_errors(true);
 		$document->preserveWhiteSpace = false;
@@ -55,15 +52,33 @@ class ComponentParser implements ParserInterface
 			$component = $this->extractComponentName($element);
 			$attributes = $this->extractAttributes($element);
 			$componentHtml = $this->renderComponent($component, $attributes, $children);
-			$parsedHtml = $this->replaceComponentTag($element, $componentHtml, $parsedHtml);
+			$cleanHtml = $this->removeCommentedComponents($component, $parsedHtml);
+			$parsedHtml = $this->replaceComponentTag($element, $componentHtml, $cleanHtml);
 		}
 
 		return $parsedHtml;
 	}
 
+	protected function removeCommentedComponents(string $componentName, string $html): string
+	{
+		$document = new HTML5DOMDocument();
+		$this->safeLoadDocument($document, $html);
+		$documentXPath = new DOMXPath($document);
+		$commentedElements = $documentXPath->query("//comment()[contains(., '<$this->prefix-$componentName')]");
+
+		foreach ($commentedElements as $comment) {
+			$parent = $comment->parentNode;
+			$parent->removeChild($comment);
+		}
+
+		return $document->saveHTML();
+	}
+
 	protected function getComponentTags(): DOMNodeList
 	{
-		return $this->documentXPath->query("//*[starts-with(name(), '$this->prefix-')]");
+		$documentXPath = new DOMXPath($this->document);
+
+		return $documentXPath->query("//*[starts-with(name(), '$this->prefix-')]");
 	}
 
 	protected function extractComponentName(DOMNode $element): string
@@ -119,7 +134,7 @@ class ComponentParser implements ParserInterface
 
 	protected function setWrapperElementAttributes(string $html, array $attributes): string
 	{
-		$document = new DOMDocument();
+		$document = new HTML5DOMDocument();
 		$this->safeLoadDocument($document, $html);
 
 		$wrapperElement = $document->getElementsByTagName('*')->item(0);
@@ -149,7 +164,7 @@ class ComponentParser implements ParserInterface
 
 	protected function appendComponentChildren(string $html, DOMNodeList $children): string
 	{
-		$document = new DOMDocument();
+		$document = new HTML5DOMDocument();
 		$this->safeLoadDocument($document, $html);
 
 		$element = $document->getElementsByTagName('*')->item(0);
@@ -184,7 +199,7 @@ class ComponentParser implements ParserInterface
 		return $document->saveHTML($element);
 	}
 
-	protected function createFragmentIfTemplated(DOMNode $template, DOMDocument $document): DOMNode
+	protected function createFragmentIfTemplated(DOMNode $template, HTML5DOMDocument $document): DOMNode
 	{
 		if ($template->nodeName === self::TEMPLATE_TAG) {
 			$fragment = $document->createDocumentFragment();
@@ -208,7 +223,7 @@ class ComponentParser implements ParserInterface
 		return $template;
 	}
 
-	protected function replaceSlotWithComponentContents(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName, DOMDocument $document): void
+	protected function replaceSlotWithComponentContents(DOMNodeList $slots, DOMNode $child, ?string $templateSlotName, HTML5DOMDocument $document): void
 	{
 		$childSlotName = $child->hasAttributes()
 			? $child->getAttribute(self::SLOT_TAG)
@@ -232,10 +247,10 @@ class ComponentParser implements ParserInterface
 	 * Comment out unused slots. Use for loop instead of foreach to avoid modifying the DOMNodeList object while on the loop.
 	 *
 	 * @param DOMNodeList $slots
-	 * @param DOMDocument $document
+	 * @param HTML5DOMDocument $document
 	 * @return void
 	 */
-	protected function commentUnusedSlots(DOMNodeList $slots, DOMDocument $document): void
+	protected function commentUnusedSlots(DOMNodeList $slots, HTML5DOMDocument $document): void
 	{
 		for ($i = 0; $i < $slots->length; $i++) {
 			$slot = $slots->item($i);

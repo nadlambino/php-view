@@ -266,7 +266,7 @@ class View implements Renderable
 		return $this;
 	}
 
-	public function autoloadComponentsFrom(string $namespace): self
+	public function autoDiscoverComponentsFrom(string $namespace): self
 	{
 		$this->componentNamespace = $namespace;
 

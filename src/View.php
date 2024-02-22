@@ -27,7 +27,7 @@ class View implements Renderable
 
 	private ?string $componentNamespace = null;
 
-	private string $componentViewsPath = 'components';
+	private const COMPONENT_VIEWS_DIRECTORY = 'components';
 
 	private string $notFoundView = 'resources/errors/404.php';
 
@@ -94,7 +94,7 @@ class View implements Renderable
 			return $componentInstance->setComponentProps($data)->render();
 		}
 
-		$view = trim($this->componentViewsPath . DIRECTORY_SEPARATOR . $component, DIRECTORY_SEPARATOR);
+		$view = trim(self::COMPONENT_VIEWS_DIRECTORY . DIRECTORY_SEPARATOR . $component, DIRECTORY_SEPARATOR);
 
 		return $this->make($view, $data);
 	}
@@ -257,13 +257,6 @@ class View implements Renderable
 		}
 
 		return file_get_contents($file);
-	}
-
-	public function setComponentViewsPath(string $path): static
-	{
-		$this->componentViewsPath = $path;
-
-		return $this;
 	}
 
 	public function setComponentPrefix(string $prefix): static

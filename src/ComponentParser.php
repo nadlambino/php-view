@@ -42,21 +42,23 @@ class ComponentParser implements ParserInterface
 
 	public function parse(): string
 	{
-		$parsedHtml = $this->html;
-		$componentTags = $this->getComponentTags();
-		$length = $componentTags->length;
+		$parsedContents = $this->html;
+		$components = $this->getComponents();
+		$length = $components->length;
 
 		for ($i = 0; $i < $length; $i++) {
-			$element = $componentTags->item($i);
-			$children = $element->hasChildNodes() ? $element->childNodes : null;
-			$component = $this->extractComponentName($element);
-			$attributes = $this->extractAttributes($element);
-			$componentHtml = $this->renderComponent($component, $attributes, $children);
-			$cleanHtml = $this->removeCommentedComponents($component, $parsedHtml);
-			$parsedHtml = $this->replaceComponentTag($element, $componentHtml, $cleanHtml);
+			$component = $components->item($i);
+
+			$children = $component->hasChildNodes() ? $component->childNodes : null;
+			$componentName = $this->extractComponentName($component);
+			$attributes = $this->extractAttributes($component);
+
+			$contents = $this->renderComponent($componentName, $attributes, $children);
+			$cleanContents = $this->removeCommentedComponents($componentName, $parsedContents);
+			$parsedContents = $this->replaceComponentTag($component, $contents, $cleanContents);
 		}
 
-		return $parsedHtml;
+		return $parsedContents;
 	}
 
 	protected function removeCommentedComponents(string $componentName, string $html): string
@@ -74,7 +76,7 @@ class ComponentParser implements ParserInterface
 		return $document->saveHTML();
 	}
 
-	protected function getComponentTags(): DOMNodeList
+	protected function getComponents(): DOMNodeList
 	{
 		$documentXPath = new DOMXPath($this->document);
 

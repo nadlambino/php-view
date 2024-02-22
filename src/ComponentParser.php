@@ -42,7 +42,7 @@ class ComponentParser implements ParserInterface
 
 	public function parse(): string
 	{
-		$parsedContents = $this->html;
+		$parsedContents = $this->removeCommentedComponents($this->html);
 		$components = $this->getComponents();
 		$length = $components->length;
 
@@ -54,26 +54,17 @@ class ComponentParser implements ParserInterface
 			$attributes = $this->extractAttributes($component);
 
 			$contents = $this->renderComponent($componentName, $attributes, $children);
-			$cleanContents = $this->removeCommentedComponents($componentName, $parsedContents);
-			$parsedContents = $this->replaceComponentTag($component, $contents, $cleanContents);
+			$parsedContents = $this->replaceComponentNode($component, $contents, $parsedContents);
 		}
 
 		return $parsedContents;
 	}
 
-	protected function removeCommentedComponents(string $componentName, string $html): string
+	protected function removeCommentedComponents(string $html): string
 	{
-		$document = new HTML5DOMDocument();
-		$this->safeLoadDocument($document, $html);
-		$documentXPath = new DOMXPath($document);
-		$commentedElements = $documentXPath->query("//comment()[contains(., '<$this->prefix-$componentName')]");
+		$pattern = '/<!--\s*<' . $this->prefix . '-(.*?)\s*-->/s';
 
-		foreach ($commentedElements as $comment) {
-			$parent = $comment->parentNode;
-			$parent->removeChild($comment);
-		}
-
-		return $document->saveHTML();
+		return preg_replace($pattern, '<!-- Unused component -->', $html);
 	}
 
 	protected function getComponents(): DOMNodeList
@@ -261,7 +252,7 @@ class ComponentParser implements ParserInterface
 		}
 	}
 
-	protected function replaceComponentTag(DOMNode $element, string $replacement, string $html): string
+	protected function replaceComponentNode(DOMNode $element, string $replacement, string $html): string
 	{
 		$name = $element->nodeName;
 

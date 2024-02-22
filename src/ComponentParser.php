@@ -64,7 +64,7 @@ class ComponentParser implements ParserInterface
 	{
 		$pattern = '/<!--\s*<' . $this->prefix . '-(.*?)\s*-->/s';
 
-		return preg_replace($pattern, '<!-- Unused component -->', $html);
+		return preg_replace($pattern, '<!-- this comment means that this component was commented -->', $html);
 	}
 
 	protected function getComponents(): DOMNodeList

@@ -102,9 +102,7 @@ class View implements Renderable
 	public function html(string $html, array $data = [], string $filename = ''): self
 	{
 		try {
-			if (empty($filename)) {
-				$filename = $this->createEncodedFilename((string)microtime());
-			}
+			$filename = $this->createEncodedFilename($filename ?: (string)microtime());
 
 			if ($this->useCached && file_exists($filename)) {
 				$this->contents = self::requireView($filename, $data);

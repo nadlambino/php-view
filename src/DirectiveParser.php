@@ -13,6 +13,7 @@ class DirectiveParser implements ParserInterface
 	public function parse(): string
 	{
 		$this->parseBlockDirectives()
+			->parseNonExpressionBlockDirectives()
 			->parseSingleLineDirectives()
 			->parseTerminatingDirectives();
 
@@ -85,6 +86,40 @@ class DirectiveParser implements ParserInterface
 		unset($space);
 
 		return [$matched, $directive, $expression];
+	}
+
+	private function parseNonExpressionBlockDirectives(): self
+	{
+		$pattern = '/(^|\s+)@(.*?)\s(.*?)@end(\2)/s';
+		[$matched, $directive, $body] = $this->extractNonExpressionBlockDirective($pattern);
+
+		if (!$this->view->hasDirective($directive)) {
+			return $this;
+		}
+
+		$callback = $this->view->getDirectiveCallback($directive);
+
+		$this->html = str_replace($matched, PHP_EOL . $callback(null, $body) . PHP_EOL, $this->html);
+
+		if (preg_match($pattern, $this->html)) {
+			$this->parseNonExpressionBlockDirectives();
+		}
+
+		return $this;
+	}
+
+	private function extractNonExpressionBlockDirective(string $pattern): array
+	{
+		preg_match($pattern, $this->html, $matches);
+
+		if (empty($matches)) {
+			return ['', '', ''];
+		}
+
+		[$matched, $space, $directive, $body] = $matches;
+		unset($space);
+
+		return [$matched, $directive, $body];
 	}
 
 	private function parseBlockDirectives(): self

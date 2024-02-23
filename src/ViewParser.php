@@ -13,7 +13,7 @@ class ViewParser implements ParserInterface
 	 */
 	private array $codeBlocks = [];
 
-	public function __construct(protected string $html)
+	public function __construct(protected string $html, protected View $view)
 	{
 	}
 
@@ -21,80 +21,18 @@ class ViewParser implements ParserInterface
 	{
 		$this->parseBlocks()
 			->parseYields()
-			->parseBlockDirectives()
-			->parseSingleLineDirectives()
+			->parseDirectives()
 			->parseEscapedEchos()
 			->parseUnescapedEchos();
 
 		return $this->html;
 	}
 
-	private function parseSingleLineDirectives(): self
+	private function parseDirectives(): self
 	{
-		$pattern = '/(^|\s+)@(.*?)\((.*?)\)($|\s+)/';
-		[$matched, $directive, $expression] = $this->extractSingleLineDirective($pattern);
-
-		if (!Directive::getInstance()->has($directive)) {
-			return $this;
-		}
-
-		$callback = Directive::getInstance()->get($directive);
-
-		$this->html = str_replace($matched, $callback($expression) . PHP_EOL, $this->html);
-
-		if (preg_match($pattern, $this->html)) {
-			$this->parseSingleLineDirectives();
-		}
+		$this->html = (new DirectiveParser($this->html, $this->view))->parse();
 
 		return $this;
-	}
-
-	private function extractSingleLineDirective(string $pattern): array
-	{
-		preg_match($pattern, $this->html, $matches);
-
-		if (empty($matches)) {
-			return ['', '', ''];
-		}
-
-		[$matched, $space, $directive, $expression] = $matches;
-		unset($space);
-
-		return [$matched, $directive, $expression];
-	}
-
-	private function parseBlockDirectives(): self
-	{
-		$pattern = '/(^|\s+)@(.*?)\s*\(\s*(.*?)\s*\)(.*?)@end(\2)/s';
-		[$matched, $directive, $expression, $body] = $this->extractBlockDirective($pattern);
-
-		if (!Directive::getInstance()->has($directive)) {
-			return $this;
-		}
-
-		$callback = Directive::getInstance()->get($directive);
-
-		$this->html = str_replace($matched, $callback($expression, $body) . PHP_EOL, $this->html);
-
-		if (preg_match($pattern, $this->html)) {
-			$this->parseBlockDirectives();
-		}
-
-		return $this;
-	}
-
-	private function extractBlockDirective(string $pattern): array
-	{
-		preg_match($pattern, $this->html, $matches);
-
-		if (empty($matches)) {
-			return ['', '', ''];
-		}
-
-		[$matched, $space, $directive, $expression, $body] = $matches;
-		unset($space);
-
-		return [$matched, $directive, $expression, $body];
 	}
 
 	private function parseBlocks(): self

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Inspira\View;
 
+use Closure;
 use Exception;
 use Inspira\Container\Container;
 use Inspira\Contracts\Renderable;
@@ -31,6 +32,8 @@ class View implements Renderable
 	private ?string $componentNamespace = null;
 
 	private const COMPONENT_VIEWS_DIRECTORY = 'components';
+
+	private array $directives = [];
 
 	private string $notFoundView = 'resources/errors/404.php';
 
@@ -115,7 +118,7 @@ class View implements Renderable
 
 			$contents = $this->includeFiles($html, true);
 			$contents = (new ComponentParser($this->container, $this, $contents, $this->componentPrefix))->parse();
-			$contents = (new ViewParser($contents))->parse();
+			$contents = (new ViewParser($contents, $this))->parse();
 
 			$this->save($filename, $contents);
 		} catch (Exception $exception) {
@@ -195,7 +198,7 @@ class View implements Renderable
 
 			$contents = $this->includeFiles($file);
 			$contents = (new ComponentParser($this->container, $this, $contents, $this->componentPrefix))->parse();
-			$contents = (new ViewParser($contents))->parse();
+			$contents = (new ViewParser($contents, $this))->parse();
 
 			$this->save($filename, $contents);
 
@@ -308,6 +311,25 @@ class View implements Renderable
 		}
 
 		throw new ComponentNotFoundException($message, suggestions: $suggestions);
+	}
+
+	public function registerDirective(string $directive, Closure $callback): self
+	{
+		$this->directives[$directive] = [
+			'callback' => $callback
+		];
+
+		return $this;
+	}
+
+	public function getDirectiveCallback(string $directive): Closure
+	{
+		return $this->directives[$directive]['callback'];
+	}
+
+	public function hasDirective(string $directive): bool
+	{
+		return isset($this->directives[$directive]);
 	}
 
 	private function save(string $filename, string $contents): void

@@ -32,12 +32,8 @@ class Directive
 		return $this;
 	}
 
-	public function get(string $directive)
+	public function get(string $directive): Closure
 	{
-		if (!$this->has($directive)) {
-			throw new RuntimeException("Unknown `$directive` directive.");
-		}
-
 		return $this->directives[$directive]['callback'];
 	}
 

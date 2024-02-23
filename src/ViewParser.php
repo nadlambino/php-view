@@ -21,34 +21,76 @@ class ViewParser implements ParserInterface
 	{
 		$this->parseBlocks()
 			->parseYields()
-			->parseDirectives()
+			->parseSingleLineDirectives()
+			->parseBlockDirectives()
 			->parseEscapedEchos()
 			->parseUnescapedEchos();
 
 		return $this->html;
 	}
 
-	private function parseDirectives(): self
+	private function parseSingleLineDirectives(): self
 	{
-		$pattern = '/(^|\s+)@(.*?)\s*\(\s*(.*?)\s*\)(.*?)@end(\2)/s';
+		$pattern = '/(^|\s+)@(.*?)\((.*?)\)($|\s+)/';
+		[$matched, $directive, $expression] = $this->extractSingleLineDirective($pattern);
 
-		[$matched, $directive, $expression, $body] = $this->extractDirective();
+		if (!Directive::getInstance()->has($directive)) {
+			return $this;
+		}
+
 		$callback = Directive::getInstance()->get($directive);
 
-		$this->html = str_replace($matched, $callback($expression, $body), $this->html);
+		$this->html = str_replace($matched, $callback($expression) . PHP_EOL, $this->html);
 
 		if (preg_match($pattern, $this->html)) {
-			$this->parseDirectives();
+			$this->parseSingleLineDirectives();
 		}
 
 		return $this;
 	}
 
-	private function extractDirective(): array
+	private function extractSingleLineDirective(string $pattern): array
+	{
+		preg_match($pattern, $this->html, $matches);
+
+		if (empty($matches)) {
+			return ['', '', ''];
+		}
+
+		[$matched, $space, $directive, $expression] = $matches;
+		unset($space);
+
+		return [$matched, $directive, $expression];
+	}
+
+	private function parseBlockDirectives(): self
 	{
 		$pattern = '/(^|\s+)@(.*?)\s*\(\s*(.*?)\s*\)(.*?)@end(\2)/s';
+		[$matched, $directive, $expression, $body] = $this->extractBlockDirective($pattern);
 
+		if (!Directive::getInstance()->has($directive)) {
+			return $this;
+		}
+
+		$callback = Directive::getInstance()->get($directive);
+
+		$this->html = str_replace($matched, $callback($expression, $body) . PHP_EOL, $this->html);
+
+		if (preg_match($pattern, $this->html)) {
+			$this->parseBlockDirectives();
+		}
+
+		return $this;
+	}
+
+	private function extractBlockDirective(string $pattern): array
+	{
 		preg_match($pattern, $this->html, $matches);
+
+		if (empty($matches)) {
+			return ['', '', ''];
+		}
+
 		[$matched, $space, $directive, $expression, $body] = $matches;
 		unset($space);
 

@@ -10,6 +10,7 @@ use Inspira\Contracts\Renderable;
 use Inspira\View\Exceptions\ComponentNotFoundException;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
+use function Inspira\Utils\closest_match;
 use function Inspira\Utils\to_pascal;
 
 /**

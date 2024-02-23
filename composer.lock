@@ -4,53 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "55aea1dadf4b2f2902bcb6e2c1995faf",
+    "content-hash": "7fc1b81799271a6600000871ffbd3647",
     "packages": [
-        {
-            "name": "inspira/closest-match",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/nadlambino/php-closest-match.git",
-                "reference": "ca5db9ece738961c931b4ebaa4988e2e98e0f29d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/nadlambino/php-closest-match/zipball/ca5db9ece738961c931b4ebaa4988e2e98e0f29d",
-                "reference": "ca5db9ece738961c931b4ebaa4988e2e98e0f29d",
-                "shasum": ""
-            },
-            "require-dev": {
-                "php": "^8.3",
-                "symfony/var-dumper": "7.1.x-dev"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/functions.php"
-                ],
-                "psr-4": {
-                    "Inspira\\ClosesMatch\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ronald Lambino",
-                    "email": "50892397+nadlambino@users.noreply.github.com"
-                }
-            ],
-            "description": "Find the closest match of a string.",
-            "support": {
-                "issues": "https://github.com/nadlambino/php-closest-match/issues",
-                "source": "https://github.com/nadlambino/php-closest-match/tree/master"
-            },
-            "time": "2024-02-04T03:25:41+00:00"
-        },
         {
             "name": "inspira/container",
             "version": "dev-master",
@@ -557,7 +512,6 @@
         "inspira/contracts": 20,
         "inspira/container": 20,
         "inspira/utils": 20,
-        "inspira/closest-match": 20,
         "inspira/error-page": 20,
         "symfony/var-dumper": 20
     },

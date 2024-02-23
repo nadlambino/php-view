@@ -150,7 +150,7 @@ class Directives
 				$expression = $matches[1];
 			}
 
-			return "<script src={{ $expression }}></script>";
+			return "<script src='$expression'></script>";
 		});
 
 		return $this;

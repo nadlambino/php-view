@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Inspira\View;
 
+use InvalidArgumentException;
+
 class Directives
 {
 	public function __construct(private View $view)
@@ -138,6 +140,10 @@ class Directives
 	private function registerScript(): self
 	{
 		$this->view->registerDirective('script', function ($expression) {
+			if (!isset($expression)) {
+				throw new InvalidArgumentException('Missing script source');
+			}
+
 			return "<script src={{ $expression }}></script>";
 		});
 

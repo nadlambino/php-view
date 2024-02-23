@@ -112,7 +112,7 @@ class DirectiveParser implements ParserInterface
 		preg_match($pattern, $this->html, $matches);
 
 		if (empty($matches)) {
-			return ['', '', ''];
+			return ['', '', '', ''];
 		}
 
 		[$matched, $space, $directive, $expression, $body] = $matches;

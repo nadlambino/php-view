@@ -65,7 +65,7 @@ class Directives
 	private function registerCase(): self
 	{
 		$this->view->registerDirective('case', function ($expression, $body) {
-			return "<?php case $expression: ?>$body<?php break; ?>";
+			return "<?php case $expression: ?>$body";
 		});
 
 		return $this;
@@ -74,7 +74,7 @@ class Directives
 	private function registerDefault(): self
 	{
 		$this->view->registerDirective('default', function ($expression, $body) {
-			return "<?php default: ?>$body<?php break; ?>";
+			return "<?php default: ?>$body";
 		});
 
 		return $this;

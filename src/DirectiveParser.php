@@ -32,6 +32,10 @@ class DirectiveParser implements ParserInterface
 
 		$this->html = str_replace($matched, PHP_EOL . $callback(null, null) . PHP_EOL, $this->html);
 
+		if (preg_match($pattern, $this->html)) {
+			$this->parseTerminatingDirectives();
+		}
+
 		return $this;
 	}
 

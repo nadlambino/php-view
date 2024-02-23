@@ -140,8 +140,14 @@ class Directives
 	private function registerScript(): self
 	{
 		$this->view->registerDirective('script', function ($expression) {
-			if (!isset($expression)) {
+			if (empty($expression)) {
 				throw new InvalidArgumentException('Missing script source');
+			}
+
+			if (preg_match('/^\'(.*?)\'$/', $expression, $matches)) {
+				$expression = $matches[1];
+			} else if (preg_match('/^"(.*?)"$/', $expression, $matches)) {
+				$expression = $matches[1];
 			}
 
 			return "<script src={{ $expression }}></script>";

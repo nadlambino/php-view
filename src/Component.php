@@ -27,7 +27,7 @@ abstract class Component implements ComponentInterface
 
 	public function render(): View
 	{
-		$data = $this->getData();
+		$data = $this->getProps();
 
 		if ($html = $this->html()) {
 			return View::getInstance()
@@ -39,7 +39,7 @@ abstract class Component implements ComponentInterface
 		return component($this->view, $data);
 	}
 
-	private function getData(): array
+	protected function getProps(): array
 	{
 		$componentProps = $this->getComponentProps();
 		$classProps = $this->getClassProps();

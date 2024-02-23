@@ -140,26 +140,32 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nadlambino/php-utils.git",
-                "reference": "23e07048c7e36b67198a638aaafcec99e91f9388"
+                "reference": "fc5f215a485e0731213ce5bc93677cde2df5e851"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nadlambino/php-utils/zipball/23e07048c7e36b67198a638aaafcec99e91f9388",
-                "reference": "23e07048c7e36b67198a638aaafcec99e91f9388",
+                "url": "https://api.github.com/repos/nadlambino/php-utils/zipball/fc5f215a485e0731213ce5bc93677cde2df5e851",
+                "reference": "fc5f215a485e0731213ce5bc93677cde2df5e851",
                 "shasum": ""
             },
             "require": {
                 "inspira/contracts": "dev-master",
                 "php": "^8.3"
             },
+            "require-dev": {
+                "pestphp/pest": "3.x-dev",
+                "symfony/var-dumper": "7.1.x-dev"
+            },
             "default-branch": true,
             "type": "library",
             "autoload": {
                 "files": [
-                    "functions.php"
+                    "src/array.php",
+                    "src/string.php",
+                    "src/functions.php"
                 ],
                 "psr-4": {
-                    "Inspira\\Utils\\": "."
+                    "Inspira\\Utils\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -177,7 +183,7 @@
                 "issues": "https://github.com/nadlambino/php-utils/issues",
                 "source": "https://github.com/nadlambino/php-utils/tree/master"
             },
-            "time": "2024-02-21T12:23:21+00:00"
+            "time": "2024-02-23T07:43:06+00:00"
         },
         {
             "name": "ivopetkov/html5-dom-document-php",

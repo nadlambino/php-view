@@ -6,6 +6,9 @@ namespace Inspira\View;
 
 use ReflectionClass;
 use ReflectionProperty;
+use function Inspira\Utils\class_basename;
+use function Inspira\Utils\to_camel;
+use function Inspira\Utils\to_kebab;
 
 abstract class Component implements ComponentInterface
 {
@@ -31,7 +34,7 @@ abstract class Component implements ComponentInterface
 				->html($html, $data, static::class);
 		}
 
-		$this->view ??= camel_to_kebab(class_basename(static::class));
+		$this->view ??= to_kebab(class_basename(static::class));
 
 		return component($this->view, $data);
 	}
@@ -45,7 +48,7 @@ abstract class Component implements ComponentInterface
 			$props = [];
 
 			foreach ($componentProps as $name => $prop) {
-				$props[kebab_to_camel($name)] = $prop;
+				$props[to_camel($name)] = $prop;
 			}
 
 			return array_merge($classProps, $props);

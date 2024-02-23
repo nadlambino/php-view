@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Inspira\View;
 
+use Exception;
 use Inspira\Container\Container;
 use Inspira\Contracts\Renderable;
 use Inspira\View\Exceptions\ComponentNotFoundException;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
+use function Inspira\Utils\to_pascal;
 
 /**
  * @author Ronald Lambino
@@ -115,7 +117,7 @@ class View implements Renderable
 			$contents = (new ViewParser($contents))->parse();
 
 			$this->save($filename, $contents);
-		} catch (ViewNotFoundException|ComponentNotFoundException $exception) {
+		} catch (Exception $exception) {
 			if ($this->throwNotFound || $exception instanceof ComponentNotFoundException) {
 				throw $exception;
 			}
@@ -217,7 +219,7 @@ class View implements Renderable
 	private function getFullFilePath(string $view, bool $fromViews = true): string
 	{
 		$file = match (true) {
-			$fromViews === false => $view,
+			$fromViews === false,
 			str_contains($view, $this->viewsPath) => $view,
 			default => $this->viewsPath . DIRECTORY_SEPARATOR . $view
 		};
@@ -287,7 +289,7 @@ class View implements Renderable
 		$suggestions = [];
 
 		if ($this->componentNamespace) {
-			$class = kebab_to_pascal($key);
+			$class = to_pascal($key);
 			$component = $this->componentNamespace . '\\' . $class;
 
 			if (class_exists($component)) {

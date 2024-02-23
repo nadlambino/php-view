@@ -21,8 +21,8 @@ class ViewParser implements ParserInterface
 	{
 		$this->parseBlocks()
 			->parseYields()
-			->parseSingleLineDirectives()
 			->parseBlockDirectives()
+			->parseSingleLineDirectives()
 			->parseEscapedEchos()
 			->parseUnescapedEchos();
 

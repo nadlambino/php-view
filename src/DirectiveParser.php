@@ -29,7 +29,7 @@ class DirectiveParser implements ParserInterface
 
 		$callback = $this->view->getDirectiveCallback($directive);
 
-		$this->html = str_replace($matched, $callback($expression, null) . PHP_EOL, $this->html);
+		$this->html = str_replace($matched, PHP_EOL . $callback($expression, null) . PHP_EOL, $this->html);
 
 		if (preg_match($pattern, $this->html)) {
 			$this->parseSingleLineDirectives();
@@ -63,7 +63,7 @@ class DirectiveParser implements ParserInterface
 
 		$callback = $this->view->getDirectiveCallback($directive);
 
-		$this->html = str_replace($matched, $callback($expression, $body) . PHP_EOL, $this->html);
+		$this->html = str_replace($matched, PHP_EOL . $callback($expression, $body) . PHP_EOL, $this->html);
 
 		if (preg_match($pattern, $this->html)) {
 			$this->parseBlockDirectives();

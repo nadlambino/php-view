@@ -42,12 +42,15 @@ class View implements Renderable
 		string $cachePath = 'cache',
 		protected bool $useCached = false,
 		protected bool $throwNotFound = true,
-		protected ?Container $container = null
+		protected ?Container $container = null,
+		?Directives $directivesRegistry = null
 	)
 	{
 		$this->cacheDirectory = $cachePath . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
 		$this->container ??= Container::getInstance();
 		self::$instance = $this;
+		$directivesRegistry ??= new Directives($this);
+		$directivesRegistry->register();
 	}
 
 	public function setNotFoundView(string $view): static

@@ -13,9 +13,40 @@ class DirectiveParser implements ParserInterface
 	public function parse(): string
 	{
 		$this->parseBlockDirectives()
-			->parseSingleLineDirectives();
+			->parseSingleLineDirectives()
+			->parseTerminatingDirectives();
 
 		return $this->html;
+	}
+
+	private function parseTerminatingDirectives(): self
+	{
+		$pattern = '/(^|\s+)@(\w+)($|\s+)/';
+		[$matched, $directive] = $this->extractTerminatingDirective($pattern);
+
+		if (!$this->view->hasDirective($directive)) {
+			return $this;
+		}
+
+		$callback = $this->view->getDirectiveCallback($directive);
+
+		$this->html = str_replace($matched, PHP_EOL . $callback(null, null) . PHP_EOL, $this->html);
+
+		return $this;
+	}
+
+	private function extractTerminatingDirective(string $pattern): array
+	{
+		preg_match($pattern, $this->html, $matches);
+
+		if (empty($matches)) {
+			return ['', ''];
+		}
+
+		[$matched, $space, $directive] = $matches;
+		unset($space);
+
+		return [$matched, $directive];
 	}
 
 	private function parseSingleLineDirectives(): self

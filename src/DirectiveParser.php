@@ -56,7 +56,7 @@ class DirectiveParser implements ParserInterface
 
 	private function parseSingleLineDirectives(): self
 	{
-		$pattern = '/(^|\s+)@(.*?)\((.*?)\)($|\s+)/';
+		$pattern = '/(^|\s+)@(.*?\S)\((.*?)\)($|\s+)/';
 		[$matched, $directive, $expression] = $this->extractSingleLineDirective($pattern);
 
 		if (!$this->view->hasDirective($directive)) {
@@ -124,7 +124,7 @@ class DirectiveParser implements ParserInterface
 
 	private function parseBlockDirectives(): self
 	{
-		$pattern = '/(^|\s+)@(.*?)\s*\(\s*(.*?)\s*\)(.*?)@end(\2)/s';
+		$pattern = '/(^|\s+)@(.*?)\(\s*(.*?)\s*\)(.*?)@end(\2)/s';
 		[$matched, $directive, $expression, $body] = $this->extractBlockDirective($pattern);
 
 		if (!$this->view->hasDirective($directive)) {

@@ -19,15 +19,43 @@ class ViewParser implements ParserInterface
 
 	public function parse(): string
 	{
-		$this->compileBlocks()
-			->compileYields()
-			->compileEscapedEchos()
-			->compileUnescapedEchos();
+		$this->parseBlocks()
+			->parseYields()
+			->parseDirectives()
+			->parseEscapedEchos()
+			->parseUnescapedEchos();
 
 		return $this->html;
 	}
 
-	private function compileBlocks(): self
+	private function parseDirectives(): self
+	{
+		$pattern = '/(^|\s+)@(.*?)\s*\(\s*(.*?)\s*\)(.*?)@end(\2)/s';
+
+		[$matched, $directive, $expression, $body] = $this->extractDirective();
+		$callback = Directive::getInstance()->get($directive);
+
+		$this->html = str_replace($matched, $callback($expression, $body), $this->html);
+
+		if (preg_match($pattern, $this->html)) {
+			$this->parseDirectives();
+		}
+
+		return $this;
+	}
+
+	private function extractDirective(): array
+	{
+		$pattern = '/(^|\s+)@(.*?)\s*\(\s*(.*?)\s*\)(.*?)@end(\2)/s';
+
+		preg_match($pattern, $this->html, $matches);
+		[$matched, $space, $directive, $expression, $body] = $matches;
+		unset($space);
+
+		return [$matched, $directive, $expression, $body];
+	}
+
+	private function parseBlocks(): self
 	{
 		preg_match_all('/<!--\s*block\s*(.*?)\s*-->(.*?)<!--\s*endblock\s*-->/is', $this->html, $matches, PREG_SET_ORDER);
 
@@ -49,7 +77,7 @@ class ViewParser implements ParserInterface
 	 *
 	 * @return $this
 	 */
-	private function compileYields(): self
+	private function parseYields(): self
 	{
 		foreach ($this->codeBlocks as $block => $value) {
 			$this->html = preg_replace('/<!--\s*yield\s*' . $block . '\s*-->/i', $value, $this->html);
@@ -66,7 +94,7 @@ class ViewParser implements ParserInterface
 	 *
 	 * @return $this
 	 */
-	private function compileEscapedEchos(): self
+	private function parseEscapedEchos(): self
 	{
 		$this->html = preg_replace(
 			'~\{{\s*(.+?)\s*}}~is',
@@ -82,7 +110,7 @@ class ViewParser implements ParserInterface
 	 *
 	 * @return $this
 	 */
-	private function compileUnescapedEchos(): self
+	private function parseUnescapedEchos(): self
 	{
 		$this->html = preg_replace(
 			'~\{!!\s*(.+?)\s*!!}~is',

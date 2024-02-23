@@ -23,6 +23,7 @@ class Directives
 			->registerWhile()
 			->registerDoWhile()
 			->registerBreak()
+			->registerPhp()
 			->registerScript();
 	}
 
@@ -120,6 +121,15 @@ class Directives
 	{
 		$this->view->registerDirective('break', function ($expression, $body) {
 			return "<?php break; ?>";
+		});
+
+		return $this;
+	}
+
+	private function registerPhp(): self
+	{
+		$this->view->registerDirective('php', function ($expression, $body) {
+			return "<?php $expression; $body; ?>";
 		});
 
 		return $this;

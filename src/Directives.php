@@ -121,7 +121,7 @@ class Directives
 
 	private function registerBreak(): self
 	{
-		$this->view->registerDirective('break', function ($expression, $body) {
+		$this->view->registerDirective('break', function () {
 			return "<?php break; ?>";
 		});
 
@@ -131,7 +131,7 @@ class Directives
 	private function registerPhp(): self
 	{
 		$this->view->registerDirective('php', function ($expression, $body) {
-			return "<?php $expression; $body; ?>";
+			return "<?php $expression ?>" . PHP_EOL . "<?php $body ?>";
 		});
 
 		return $this;

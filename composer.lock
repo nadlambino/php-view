@@ -95,12 +95,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nadlambino/php-utils.git",
-                "reference": "fc5f215a485e0731213ce5bc93677cde2df5e851"
+                "reference": "ed390f5ae2794c881f2fde3b6a340ad2bfaf383d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nadlambino/php-utils/zipball/fc5f215a485e0731213ce5bc93677cde2df5e851",
-                "reference": "fc5f215a485e0731213ce5bc93677cde2df5e851",
+                "url": "https://api.github.com/repos/nadlambino/php-utils/zipball/ed390f5ae2794c881f2fde3b6a340ad2bfaf383d",
+                "reference": "ed390f5ae2794c881f2fde3b6a340ad2bfaf383d",
                 "shasum": ""
             },
             "require": {
@@ -117,6 +117,7 @@
                 "files": [
                     "src/array.php",
                     "src/string.php",
+                    "src/files.php",
                     "src/functions.php"
                 ],
                 "psr-4": {
@@ -138,7 +139,7 @@
                 "issues": "https://github.com/nadlambino/php-utils/issues",
                 "source": "https://github.com/nadlambino/php-utils/tree/master"
             },
-            "time": "2024-02-23T07:43:06+00:00"
+            "time": "2024-02-24T06:52:26+00:00"
         },
         {
             "name": "ivopetkov/html5-dom-document-php",
@@ -300,12 +301,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nadlambino/php-error-page.git",
-                "reference": "11a7323be3d2232d8b204232342dc0443743f8a5"
+                "reference": "ec6528d2c9d77bf4e4470dc0a714cfc8e89fcc74"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nadlambino/php-error-page/zipball/11a7323be3d2232d8b204232342dc0443743f8a5",
-                "reference": "11a7323be3d2232d8b204232342dc0443743f8a5",
+                "url": "https://api.github.com/repos/nadlambino/php-error-page/zipball/ec6528d2c9d77bf4e4470dc0a714cfc8e89fcc74",
+                "reference": "ec6528d2c9d77bf4e4470dc0a714cfc8e89fcc74",
                 "shasum": ""
             },
             "require": {
@@ -339,7 +340,7 @@
                 "issues": "https://github.com/nadlambino/php-error-page/issues",
                 "source": "https://github.com/nadlambino/php-error-page/tree/master"
             },
-            "time": "2024-02-21T07:44:51+00:00"
+            "time": "2024-02-23T09:21:39+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",

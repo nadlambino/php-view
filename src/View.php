@@ -12,6 +12,7 @@ use Inspira\View\Exceptions\ComponentNotFoundException;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
 use function Inspira\Utils\closest_match;
+use function Inspira\Utils\get_files_from;
 use function Inspira\Utils\to_pascal;
 
 /**
@@ -30,6 +31,8 @@ class View implements Renderable
 	private string $componentPrefix = 'app';
 
 	private ?string $componentNamespace = null;
+
+	private ?string $appPath = null;
 
 	private const COMPONENT_VIEWS_DIRECTORY = 'components';
 
@@ -273,9 +276,10 @@ class View implements Renderable
 		return $this;
 	}
 
-	public function autoDiscoverComponentsFrom(string $namespace): self
+	public function autoDiscoverComponentsFrom(string $namespace, string $appPath = __DIR__): self
 	{
 		$this->componentNamespace = $namespace;
+		$this->appPath = $appPath;
 
 		return $this;
 	}
@@ -296,11 +300,18 @@ class View implements Renderable
 		$suggestions = [];
 
 		if ($this->componentNamespace) {
-			$class = to_pascal($key);
-			$component = $this->componentNamespace . '\\' . $class;
+			$files = get_files_from($this->componentNamespace, 'php');
 
-			if (class_exists($component)) {
-				return $component;
+			$classes = array_filter(array_map(function($file) {
+				$class = ucwords(trim(str_replace([$this->appPath, '.php', '/'], ['', '', '\\'], $file), '\\'), '\\');
+
+				return $class && class_exists($class) ? $class : null;
+			}, $files));
+
+			$class = closest_match(to_pascal($key), $classes, 50, sensitive: false);
+
+			if (class_exists($class)) {
+				return $class;
 			}
 
 			$suggestions[] = "You are auto-loading your components from `$this->componentNamespace` namespace. Make sure the component is under this namespace or the component name is correct.";

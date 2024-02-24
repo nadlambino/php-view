@@ -66,10 +66,10 @@ class ComponentParser implements ParserInterface
 			$html = $this->document->saveHTML();
 		}
 
-		return $this->decodeEntities($html);
+		return $this->decodeUrls($html);
 	}
 
-	private function decodeEntities(string $html): string
+	private function decodeUrls(string $html): string
 	{
 		$pattern = '/<(.*?)(href|src|link|action|background|cite|data|formaction|icon|longdesc|manifest|poster|srcset)\s*=\s*"([^"]+)"(.*?\s*)>/is';
 

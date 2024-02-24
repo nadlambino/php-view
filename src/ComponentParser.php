@@ -42,7 +42,7 @@ class ComponentParser implements ParserInterface
 
 	public function parse(): string
 	{
-		$parsedContents = $this->removeCommentedComponents($this->html);
+		$html = $this->removeCommentedComponents($this->html);
 		$components = $this->getComponents();
 		$length = $components->length;
 
@@ -63,10 +63,24 @@ class ComponentParser implements ParserInterface
 
 			$component->parentNode->removeChild($component);
 
-			$parsedContents = $this->document->saveHTML();
+			$html = $this->document->saveHTML();
 		}
 
-		return $parsedContents;
+		return $this->decodeEntities($html);
+	}
+
+	private function decodeEntities(string $html): string
+	{
+		$pattern = '/<(.*?)(href|src|link|action|background|cite|data|formaction|icon|longdesc|manifest|poster|srcset)\s*=\s*"([^"]+)"(.*?\s*)>/i';
+
+		return preg_replace_callback($pattern, function($matches) {
+			$opening = $matches[1];
+			$attribute = $matches[2];
+			$url = html_entity_decode(urldecode($matches[3]));
+			$closing = $matches[4];
+
+			return '<' . $opening . $attribute . '="' . $url . '"' . $closing . '>';
+		}, $html);
 	}
 
 	protected function removeCommentedComponents(string $html): string

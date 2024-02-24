@@ -276,7 +276,7 @@ class View implements Renderable
 		return $this;
 	}
 
-	public function autoloadComponentsFrom(string $componentsPath, string $basePath = __DIR__): self
+	public function autoloadComponentsFrom(?string $componentsPath, string $basePath = __DIR__): self
 	{
 		$this->componentsPath = $componentsPath;
 		$this->basePath = $basePath;
@@ -308,9 +308,9 @@ class View implements Renderable
 				return $class && class_exists($class) ? $class : null;
 			}, $files));
 
-			$class = closest_match(to_pascal($key), $classes, 50, sensitive: false);
+			$class = closest_match(to_pascal($key), $classes, 20, sensitive: false);
 
-			if (class_exists($class)) {
+			if ($class && class_exists($class)) {
 				return $class;
 			}
 

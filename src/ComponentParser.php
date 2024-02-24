@@ -277,32 +277,4 @@ class ComponentParser implements ParserInterface
 			$slot->parentNode->replaceChild($comment, $slot);
 		}
 	}
-
-	protected function replaceComponentNode(DOMNode $element, string $replacement, string $html): string
-	{
-		$name = $element->nodeName;
-
-		$fullClosingPattern = '/<(' . $name . ')(\s*)(.*?)>(\s?.*?)<\/(\1)>/s';
-		$fullClosed = preg_replace($fullClosingPattern, $replacement, $html, 1);
-
-		if ($fullClosed !== null && $fullClosed !== $html) {
-			return $fullClosed;
-		}
-
-		$selfClosingPattern = '/<' . $name . '(\s?.*?)\/>/';
-		$selfClosed = preg_replace($selfClosingPattern, $replacement, $html, 1);
-
-		if ($selfClosed !== null && $selfClosed !== $html) {
-			return $selfClosed;
-		}
-
-		$selfClosingWithNewLinePattern = '/<' . $name . '(\s?[\\r\\n].*?)\/>/s';
-		$withNewLine = preg_replace($selfClosingWithNewLinePattern, $replacement, $html, 1);
-
-		if ($withNewLine !== null && $withNewLine !== $html) {
-			return $withNewLine;
-		}
-
-		return $html;
-	}
 }

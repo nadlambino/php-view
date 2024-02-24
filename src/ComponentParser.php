@@ -42,7 +42,7 @@ class ComponentParser implements ParserInterface
 
 	public function parse(): string
 	{
-		$parsedContents = $this->removeCommentedComponents($this->html);
+		$html = $this->removeCommentedComponents($this->html);
 		$components = $this->getComponents();
 		$length = $components->length;
 
@@ -52,12 +52,35 @@ class ComponentParser implements ParserInterface
 			$children = $component->hasChildNodes() ? $component->childNodes : null;
 			$componentName = $this->extractComponentName($component);
 			$attributes = $this->extractAttributes($component);
-
 			$contents = $this->renderComponent($componentName, $attributes, $children);
-			$parsedContents = $this->replaceComponentNode($component, $contents, $parsedContents);
+
+			$document = new HTML5DOMDocument();
+			$this->safeLoadDocument($document, $contents);
+
+			foreach($document->childNodes as $node) {
+				$component->parentNode->insertBefore($this->document->importNode($node, true), $component);
+			}
+
+			$component->parentNode->removeChild($component);
+
+			$html = $this->document->saveHTML();
 		}
 
-		return $parsedContents;
+		return $this->decodeUrls($html);
+	}
+
+	private function decodeUrls(string $html): string
+	{
+		$pattern = '/<(.*?)(href|src|link|action|background|cite|data|formaction|icon|longdesc|manifest|poster|srcset)\s*=\s*"([^"]+)"(.*?\s*)>/is';
+
+		return preg_replace_callback($pattern, function($matches) {
+			$opening = $matches[1];
+			$attribute = $matches[2];
+			$url = html_entity_decode(urldecode($matches[3]));
+			$closing = $matches[4];
+
+			return '<' . $opening . $attribute . '="' . $url . '"' . $closing . '>';
+		}, $html);
 	}
 
 	protected function removeCommentedComponents(string $html): string
@@ -228,7 +251,10 @@ class ComponentParser implements ParserInterface
 			$slot = $slots->item($i);
 			$slotName = $slot->getAttribute('name');
 			if ((empty($slotName) && empty($childSlotName)) || $slotName === $childSlotName) {
-				$child->removeAttribute(self::SLOT_TAG);
+				if ($child->hasAttributes()) {
+					$child->removeAttribute(self::SLOT_TAG);
+				}
+
 				$slot->parentNode->replaceChild($document->importNode($child, true), $slot);
 
 				break;
@@ -250,33 +276,5 @@ class ComponentParser implements ParserInterface
 			$comment = $document->createComment($document->saveHTML($slot));
 			$slot->parentNode->replaceChild($comment, $slot);
 		}
-	}
-
-	protected function replaceComponentNode(DOMNode $element, string $replacement, string $html): string
-	{
-		$name = $element->nodeName;
-
-		$selfClosingPattern = '/<' . $name . '(\s?.*?)\/>/';
-		$selfClosed = preg_replace($selfClosingPattern, $replacement, $html, 1);
-
-		if ($selfClosed !== null && $selfClosed !== $html) {
-			return $selfClosed;
-		}
-
-		$selfClosingWithNewLinePattern = '/<' . $name . '(\s?[\\r\\n].*?)\/>/s';
-		$withNewLine = preg_replace($selfClosingWithNewLinePattern, $replacement, $html, 1);
-
-		if ($withNewLine !== null && $withNewLine !== $html) {
-			return $withNewLine;
-		}
-
-		$fullClosingPattern = '/<' . $name . '(.*?)>(\s?.*?)<\/' . $name . '>/s';
-		$fullClosed = preg_replace($fullClosingPattern, $replacement, $html, 1);
-
-		if ($fullClosed !== null && $fullClosed !== $html) {
-			return $fullClosed;
-		}
-
-		return $html;
 	}
 }

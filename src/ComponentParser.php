@@ -52,9 +52,18 @@ class ComponentParser implements ParserInterface
 			$children = $component->hasChildNodes() ? $component->childNodes : null;
 			$componentName = $this->extractComponentName($component);
 			$attributes = $this->extractAttributes($component);
-
 			$contents = $this->renderComponent($componentName, $attributes, $children);
-			$parsedContents = $this->replaceComponentNode($component, $contents, $parsedContents);
+
+			$document = new HTML5DOMDocument();
+			$this->safeLoadDocument($document, $contents);
+
+			foreach($document->childNodes as $node) {
+				$component->parentNode->insertBefore($this->document->importNode($node, true), $component);
+			}
+
+			$component->parentNode->removeChild($component);
+
+			$parsedContents = $this->document->saveHTML();
 		}
 
 		return $parsedContents;
@@ -256,6 +265,13 @@ class ComponentParser implements ParserInterface
 	{
 		$name = $element->nodeName;
 
+		$fullClosingPattern = '/<(' . $name . ')(\s*)(.*?)>(\s?.*?)<\/(\1)>/s';
+		$fullClosed = preg_replace($fullClosingPattern, $replacement, $html, 1);
+
+		if ($fullClosed !== null && $fullClosed !== $html) {
+			return $fullClosed;
+		}
+
 		$selfClosingPattern = '/<' . $name . '(\s?.*?)\/>/';
 		$selfClosed = preg_replace($selfClosingPattern, $replacement, $html, 1);
 
@@ -268,13 +284,6 @@ class ComponentParser implements ParserInterface
 
 		if ($withNewLine !== null && $withNewLine !== $html) {
 			return $withNewLine;
-		}
-
-		$fullClosingPattern = '/<' . $name . '(.*?)>(\s?.*?)<\/' . $name . '>/s';
-		$fullClosed = preg_replace($fullClosingPattern, $replacement, $html, 1);
-
-		if ($fullClosed !== null && $fullClosed !== $html) {
-			return $fullClosed;
 		}
 
 		return $html;

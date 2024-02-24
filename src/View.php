@@ -30,9 +30,9 @@ class View implements Renderable
 
 	private string $componentPrefix = 'app';
 
-	private ?string $componentNamespace = null;
+	private ?string $componentsPath = null;
 
-	private ?string $appPath = null;
+	private ?string $basePath = null;
 
 	private const COMPONENT_VIEWS_DIRECTORY = 'components';
 
@@ -276,10 +276,10 @@ class View implements Renderable
 		return $this;
 	}
 
-	public function autoDiscoverComponentsFrom(string $namespace, string $appPath = __DIR__): self
+	public function autoloadComponentsFrom(string $componentsPath, string $basePath = __DIR__): self
 	{
-		$this->componentNamespace = $namespace;
-		$this->appPath = $appPath;
+		$this->componentsPath = $componentsPath;
+		$this->basePath = $basePath;
 
 		return $this;
 	}
@@ -299,11 +299,11 @@ class View implements Renderable
 
 		$suggestions = [];
 
-		if ($this->componentNamespace) {
-			$files = get_files_from($this->componentNamespace, 'php');
+		if ($this->componentsPath) {
+			$files = get_files_from($this->componentsPath, 'php');
 
 			$classes = array_filter(array_map(function($file) {
-				$class = ucwords(trim(str_replace([$this->appPath, '.php', '/'], ['', '', '\\'], $file), '\\'), '\\');
+				$class = ucwords(trim(str_replace([$this->basePath, '.php', '/'], ['', '', '\\'], $file), '\\'), '\\');
 
 				return $class && class_exists($class) ? $class : null;
 			}, $files));
@@ -314,7 +314,7 @@ class View implements Renderable
 				return $class;
 			}
 
-			$suggestions[] = "You are auto-loading your components from `$this->componentNamespace` namespace. Make sure the component is under this namespace or the component name is correct.";
+			$suggestions[] = "You are auto-loading your components from `$this->componentsPath` namespace. Make sure the component is under this namespace or the component name is correct.";
 		}
 
 		$message = "Component `$key` is not found.";

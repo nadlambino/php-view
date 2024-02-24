@@ -71,7 +71,7 @@ class ComponentParser implements ParserInterface
 
 	private function decodeEntities(string $html): string
 	{
-		$pattern = '/<(.*?)(href|src|link|action|background|cite|data|formaction|icon|longdesc|manifest|poster|srcset)\s*=\s*"([^"]+)"(.*?\s*)>/i';
+		$pattern = '/<(.*?)(href|src|link|action|background|cite|data|formaction|icon|longdesc|manifest|poster|srcset)\s*=\s*"([^"]+)"(.*?\s*)>/is';
 
 		return preg_replace_callback($pattern, function($matches) {
 			$opening = $matches[1];

@@ -8,12 +8,12 @@ use Closure;
 use Exception;
 use Inspira\Container\Container;
 use Inspira\Contracts\Renderable;
+use Inspira\View\Exceptions\ComponentAlreadyRegisteredException;
 use Inspira\View\Exceptions\ComponentNotFoundException;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
+use InvalidArgumentException;
 use function Inspira\Utils\closest_match;
-use function Inspira\Utils\get_files_from;
-use function Inspira\Utils\to_pascal;
 
 /**
  * @author Ronald Lambino
@@ -29,10 +29,6 @@ class View implements Renderable
 	private array $components = [];
 
 	private string $componentPrefix = 'app';
-
-	private ?string $componentsPath = null;
-
-	private ?string $basePath = null;
 
 	private const COMPONENT_VIEWS_DIRECTORY = 'components';
 
@@ -276,16 +272,17 @@ class View implements Renderable
 		return $this;
 	}
 
-	public function autoloadComponentsFrom(?string $componentsPath, string $basePath = __DIR__): self
-	{
-		$this->componentsPath = $componentsPath;
-		$this->basePath = $basePath;
-
-		return $this;
-	}
-
 	public function registerComponent(string $key, string $component): self
 	{
+		if (empty($key)) {
+			throw new InvalidArgumentException("Key can't be empty.");
+
+		}
+
+		if (isset($this->components[$key])) {
+			throw new ComponentAlreadyRegisteredException("`$key` component is already registered.");
+		}
+
 		$this->components[$key] = $component;
 
 		return $this;
@@ -299,32 +296,11 @@ class View implements Renderable
 
 		$suggestions = [];
 
-		if ($this->componentsPath) {
-			$files = get_files_from($this->componentsPath, 'php');
-
-			$classes = array_filter(array_map(function($file) {
-				$class = ucwords(trim(str_replace([$this->basePath, '.php', '/'], ['', '', '\\'], $file), '\\'), '\\');
-
-				return $class && class_exists($class) ? $class : null;
-			}, $files));
-
-			$class = closest_match(to_pascal($key), $classes, 20, sensitive: false);
-
-			if ($class && class_exists($class)) {
-				return $class;
-			}
-
-			$suggestions[] = "You are auto-loading your components from `$this->componentsPath` namespace. Make sure the component is under this namespace or the component name is correct.";
+		if ($closest = closest_match($key, array_keys($this->components))) {
+			$suggestions[] = "Did you register this component or do you mean `$closest`?";
 		}
 
-		$message = "Component `$key` is not found.";
-		$closest = closest_match($key, array_keys($this->components));
-
-		if (!empty($closest)) {
-			array_unshift($suggestions, "Did you register this component or do you mean `$closest`?");
-		}
-
-		throw new ComponentNotFoundException($message, suggestions: $suggestions);
+		throw new ComponentNotFoundException("Component `$key` is not found.", suggestions: $suggestions);
 	}
 
 	public function registerDirective(string $directive, Closure $callback): self

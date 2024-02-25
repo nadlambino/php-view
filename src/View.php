@@ -22,26 +22,53 @@ class View implements Renderable
 
 	private static View $instance;
 
+	private string $viewsPath = '';
+
 	private string $cacheDirectory;
 
+	private bool $useCached = false;
+
 	private string $contents = '';
+
+	private bool $throwNotFound = true;
 
 	private string $notFoundView = 'resources/errors/404.php';
 
 	public function __construct(
-		protected string $viewsPath = '',
-		string $cachePath = 'cache',
-		protected bool $useCached = false,
-		protected bool $throwNotFound = true,
+		array $configs = [],
 		protected ?Container $container = null,
 		?Directives $directivesRegistry = null
 	)
 	{
-		$this->cacheDirectory = $cachePath . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
 		$this->container ??= Container::getInstance();
-		self::$instance = $this;
 		$directivesRegistry ??= new Directives($this);
 		$directivesRegistry->register();
+
+		$this->viewsPath = $configs['views_path'] ?? $this->viewsPath;
+		$this->cacheDirectory = ($configs['cache_path'] ?? 'cache') . DIRECTORY_SEPARATOR;
+		$this->useCached = $configs['use_cached'] ?? $this->useCached;
+		$this->throwNotFound = $configs['throw_not_found'] ?? $this->throwNotFound;
+
+		self::setInstance($this);
+	}
+
+	public static function setInstance(View $instance): View
+	{
+		self::$instance = $instance;
+
+		return $instance;
+	}
+
+	public static function getInstance(): View
+	{
+		return self::$instance ?? new self();
+	}
+
+	public function setViewsPath(string $path): static
+	{
+		$this->viewsPath = trim($path, DIRECTORY_SEPARATOR);
+
+		return $this;
 	}
 
 	public function setNotFoundView(string $view): static
@@ -55,18 +82,6 @@ class View implements Renderable
 		$this->notFoundView = $file;
 
 		return $this;
-	}
-
-	public function setViewsPath(string $path): static
-	{
-		$this->viewsPath = trim($path, DIRECTORY_SEPARATOR);
-
-		return $this;
-	}
-
-	public static function getInstance(): View
-	{
-		return self::$instance ?? new self();
 	}
 
 	public function __toString(): string

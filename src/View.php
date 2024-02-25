@@ -4,35 +4,27 @@ declare(strict_types=1);
 
 namespace Inspira\View;
 
-use Closure;
 use Exception;
 use Inspira\Container\Container;
 use Inspira\Contracts\Renderable;
-use Inspira\View\Exceptions\ComponentAlreadyRegisteredException;
 use Inspira\View\Exceptions\ComponentNotFoundException;
 use Inspira\View\Exceptions\ExtendedViewLayoutNotFoundException;
 use Inspira\View\Exceptions\ViewNotFoundException;
-use InvalidArgumentException;
-use function Inspira\Utils\closest_match;
+use Inspira\View\Traits\WithComponents;
+use Inspira\View\Traits\WithDirectives;
 
 /**
  * @author Ronald Lambino
  */
 class View implements Renderable
 {
+	use WithComponents, WithDirectives;
+
 	private static View $instance;
 
 	private string $cacheDirectory;
 
 	private string $contents = '';
-
-	private array $components = [];
-
-	private string $componentPrefix = 'app';
-
-	private const COMPONENT_VIEWS_DIRECTORY = 'components';
-
-	private array $directives = [];
 
 	private string $notFoundView = 'resources/errors/404.php';
 
@@ -90,21 +82,6 @@ class View implements Renderable
 		);
 
 		return $this;
-	}
-
-	public function component(ComponentInterface|string $component, array $data = []): self
-	{
-		if ($component instanceof ComponentInterface) {
-			return $component->setComponentProps($data)->render();
-		}
-
-		if (class_exists($component) && ($componentInstance = $this->container->make($component)) && $componentInstance instanceof ComponentInterface) {
-			return $componentInstance->setComponentProps($data)->render();
-		}
-
-		$view = trim(self::COMPONENT_VIEWS_DIRECTORY . DIRECTORY_SEPARATOR . $component, DIRECTORY_SEPARATOR);
-
-		return $this->make($view, $data);
 	}
 
 	public function html(string $html, array $data = [], string $filename = ''): self
@@ -263,63 +240,6 @@ class View implements Renderable
 		}
 
 		return file_get_contents($file);
-	}
-
-	public function setComponentPrefix(string $prefix): static
-	{
-		$this->componentPrefix = $prefix;
-
-		return $this;
-	}
-
-	public function registerComponent(string $key, string $component): self
-	{
-		if (empty($key)) {
-			throw new InvalidArgumentException("Key can't be empty.");
-
-		}
-
-		if (isset($this->components[$key])) {
-			throw new ComponentAlreadyRegisteredException("`$key` component is already registered.");
-		}
-
-		$this->components[$key] = $component;
-
-		return $this;
-	}
-
-	public function getComponentClass(string $key): string
-	{
-		if (isset($this->components[$key])) {
-			return $this->components[$key];
-		}
-
-		$suggestions = [];
-
-		if ($closest = closest_match($key, array_keys($this->components))) {
-			$suggestions[] = "Did you register this component or do you mean `$closest`?";
-		}
-
-		throw new ComponentNotFoundException("Component `$key` is not found.", suggestions: $suggestions);
-	}
-
-	public function registerDirective(string $directive, Closure $callback): self
-	{
-		$this->directives[$directive] = [
-			'callback' => $callback
-		];
-
-		return $this;
-	}
-
-	public function getDirectiveCallback(string $directive): Closure
-	{
-		return $this->directives[$directive]['callback'];
-	}
-
-	public function hasDirective(string $directive): bool
-	{
-		return isset($this->directives[$directive]);
 	}
 
 	private function save(string $filename, string $contents): void

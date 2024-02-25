@@ -174,7 +174,7 @@ class View implements Renderable
 	private function createCacheFile(string $view, bool $fromViews = true): string
 	{
 		try {
-			$file = $this->getFullFilePath($view, $fromViews);
+			$file = $this->getFileFullPath($view, $fromViews);
 
 			if (!file_exists($file)) {
 				throw new ViewNotFoundException(sprintf("View `%s` is not found", $view));
@@ -214,7 +214,7 @@ class View implements Renderable
 		return $this->cacheDirectory . substr($encoded, -100);
 	}
 
-	private function getFullFilePath(string $view, bool $fromViews = true): string
+	private function getFileFullPath(string $view, bool $fromViews = true): string
 	{
 		$file = match (true) {
 			$fromViews === false,
@@ -248,7 +248,7 @@ class View implements Renderable
 
 	private function getFileContents(string $fileOrContents): string
 	{
-		$file = $this->getFullFilePath($fileOrContents);
+		$file = $this->getFileFullPath($fileOrContents);
 
 		if (!file_exists($file)) {
 			throw new ExtendedViewLayoutNotFoundException("Extended view `$file` is not found");

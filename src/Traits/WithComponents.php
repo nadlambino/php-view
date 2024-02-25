@@ -46,33 +46,35 @@ trait WithComponents
 		return $this;
 	}
 
-	public function registerComponent(string $key, string $component): self
+	public function registerComponent(string $tag, string $component): self
 	{
-		if (empty($key)) {
-			throw new InvalidArgumentException("Key can't be empty.");
+		$tag = trim($tag);
+
+		if (empty($tag)) {
+			throw new InvalidArgumentException("Component tag can't be empty.");
 		}
 
-		if (isset($this->components[$key])) {
-			throw new ComponentAlreadyRegisteredException("`$key` component is already registered.");
+		if (isset($this->components[$tag])) {
+			throw new ComponentAlreadyRegisteredException("`$tag` component is already registered.");
 		}
 
-		$this->components[$key] = $component;
+		$this->components[$tag] = $component;
 
 		return $this;
 	}
 
-	public function getComponentClass(string $key): string
+	public function getComponentClass(string $tag): string
 	{
-		if (isset($this->components[$key])) {
-			return $this->components[$key];
+		if (isset($this->components[$tag])) {
+			return $this->components[$tag];
 		}
 
 		$suggestions = [];
 
-		if ($closest = closest_match($key, array_keys($this->components))) {
+		if ($closest = closest_match($tag, array_keys($this->components))) {
 			$suggestions[] = "Did you register this component or do you mean `$closest`?";
 		}
 
-		throw new ComponentNotFoundException("Component `$key` is not found.", suggestions: $suggestions);
+		throw new ComponentNotFoundException("Component `$tag` is not found.", suggestions: $suggestions);
 	}
 }

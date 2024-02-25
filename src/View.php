@@ -36,18 +36,18 @@ class View implements Renderable
 
 	public function __construct(
 		array $configs = [],
-		protected ?Container $container = null,
-		?Directives $directivesRegistry = null
+		protected ?Container $container = null
 	)
 	{
 		$this->container ??= Container::getInstance();
-		$directivesRegistry ??= new Directives($this);
+		$directivesRegistry = new Directives($this);
 		$directivesRegistry->register();
 
 		$this->viewsPath = $configs['views_path'] ?? $this->viewsPath;
 		$this->cacheDirectory = ($configs['cache_path'] ?? 'cache') . DIRECTORY_SEPARATOR;
 		$this->useCached = $configs['use_cached'] ?? $this->useCached;
 		$this->throwNotFound = $configs['throw_not_found'] ?? $this->throwNotFound;
+		$this->setComponentPrefix($configs['component_prefix'] ?? 'app');
 
 		self::setInstance($this);
 	}

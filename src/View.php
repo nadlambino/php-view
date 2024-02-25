@@ -187,7 +187,7 @@ class View implements Renderable
 			$filename = $this->createEncodedFilename($file);
 
 			if ($this->useCached && file_exists($filename)) {
-				return $file;
+				return $filename;
 			}
 
 			$contents = $this->includeFiles($file);
